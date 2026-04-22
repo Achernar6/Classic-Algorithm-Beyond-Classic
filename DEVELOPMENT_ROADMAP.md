@@ -2,69 +2,29 @@
 
 # Pathspace Lab MVP Development Roadmap
 
-This roadmap is designed for incremental development with a human reviewer and an AI coding agent. Each issue includes goals, todo items, non-goals, implementation notes, acceptance criteria for humans, acceptance criteria for AI, and validation expectations.
+This roadmap is designed for incremental development with a human reviewer and an AI coding agent. Each issue includes goals, todo items, non-goals, implementation notes, acceptance criteria for humans, acceptance criteria for AI, and a required execution note that should be written after implementation.
 
-The MVP builds one clean, runnable notebook that compares:
+The MVP goal is to build one clean, runnable notebook that compares:
 
-1. **Hard DP** as deterministic min-plus message passing.
-2. **Soft-DP** as a classical thermal distribution over feasible paths.
-3. **Feasible-subspace Quantum Annealing** as continuous Hamiltonian evolution over feasible complete paths.
+1. Hard DP as deterministic min-plus message passing.
+2. Soft-DP as a classical thermal distribution over feasible paths.
+3. Feasible-subspace Quantum Annealing as continuous Hamiltonian evolution over feasible complete paths.
 
-The first supported problem is a **layered DAG shortest-path / Viterbi-style path problem**. A solution is a complete path through the layers. All three methods are projected onto the same layer-node visualization canvas.
-
----
-
-## 0. Required companion documents
-
-These documents are part of the MVP spec, not optional essays.
-
-```text
-docs/math_overview.md
-docs/qa_proxy_notes.md
-docs/visualization_guide.md
-```
-
-Use them as follows:
-
-| Document | Purpose | When to update |
-|---|---|---|
-| `docs/math_overview.md` | Defines variables, formulas, shape conventions, and invariants | Any time a mathematical object, solver formula, observable, or normalization changes |
-| `docs/qa_proxy_notes.md` | Defines what the feasible-subspace QA proxy claims and does not claim | Any time the QA Hamiltonian, driver, schedule, simulation method, or quantum wording changes |
-| `docs/visualization_guide.md` | Defines what every plot means and what it must not imply | Any time a visualization, axis, heat value, comparison mode, or plot label changes |
-
-### Spec synchronization rule
-
-If an implementation PR changes the main logic, it must update the corresponding spec document in the same PR.
-
-Examples:
-
-- Change `path_energy` formula -> update `docs/math_overview.md`.
-- Change Laplacian driver -> update `docs/qa_proxy_notes.md`.
-- Change heatmap quantity or normalization -> update `docs/visualization_guide.md`.
-- Add a new plot -> update `docs/visualization_guide.md`.
-- Change notebook narrative claims -> check `docs/qa_proxy_notes.md` for consistency.
-
-This rule is the project’s scientific lint roller. Use it often. 🧹
+The first supported problem is a layered DAG shortest-path problem. A solution is a complete path through the layers. All three methods are projected onto the same layer-node visualization canvas.
 
 ---
 
-## 1. Guiding principles
+## 0. Guiding principles
 
-### 1.1 Project philosophy
+### 0.1 Project philosophy
 
 The MVP is not a quantum advantage demo. It is a visual and mathematical teaching tool.
 
-Central claim:
+The central claim:
 
 > Hard DP compresses histories into local values. Soft-DP assigns classical probabilities to complete paths. Feasible-subspace QA evolves complex amplitudes over complete paths. All three can be projected onto the same DP canvas, but their hidden dynamics are different.
 
-This claim must remain consistent with:
-
-- `docs/math_overview.md`
-- `docs/qa_proxy_notes.md`
-- `docs/visualization_guide.md`
-
-### 1.2 Engineering philosophy
+### 0.2 Engineering philosophy
 
 Keep implementation logic outside the notebook.
 
@@ -73,17 +33,36 @@ The notebook should:
 - introduce the problem,
 - call functions from `src/`,
 - display figures,
-- explain what the figures mean,
-- point readers to the three spec docs for details.
+- explain what the figures mean.
 
 The notebook should not:
 
 - define large classes,
 - contain solver internals,
 - contain long plotting utilities,
-- become the source of truth.
+- become the single source of truth.
 
-### 1.3 Scientific integrity rules
+### 0.2.1 Notebook-first development rule
+
+The notebook is not delayed until the end of the MVP. It grows issue by issue.
+
+Each issue must add at least one notebook-visible artifact unless explicitly exempted:
+
+- a new section,
+- a new runnable cell,
+- a diagnostic figure,
+- a printed sanity check,
+- or a short narrative placeholder that keeps the notebook runnable.
+
+The detailed human acceptance checklist lives in:
+
+```text
+docs/notebook_acceptance_guide.md
+```
+
+Since Issue 00 has already produced only a placeholder notebook, the next recommended task is **Issue 00A: Notebook harness and living tutorial skeleton**.
+
+### 0.3 Scientific integrity rules
 
 The MVP quantum model must be described as:
 
@@ -91,9 +70,9 @@ The MVP quantum model must be described as:
 
 It must not be described as:
 
-- a direct simulation of D-Wave hardware,
-- a proof of quantum advantage,
-- a generic QUBO transverse-field annealer.
+> a direct simulation of D-Wave hardware,
+> a proof of quantum advantage,
+> a generic QUBO transverse-field annealer.
 
 The model preserves the core annealing structure:
 
@@ -109,17 +88,17 @@ where:
 - \(B(s)\) increases,
 - the state evolves according to a time-dependent Hamiltonian.
 
-The model differs from standard transverse-field Ising QA because the Hilbert-space basis is feasible paths rather than all bitstrings, and the driver is a configuration-graph Laplacian rather than \(-\sum_i X_i\).
-
-Reference: `docs/qa_proxy_notes.md`.
+The model differs from standard transverse-field Ising QA because the Hilbert space basis is feasible paths rather than all bitstrings, and the driver is a configuration-graph Laplacian rather than \(-\sum_i X_i\).
 
 ---
 
-## 2. Project linking strategy
+## 1. Project linking strategy
 
-### 2.1 Recommended structure
+### 1.1 Recommended structure
 
 Use a standard Python package under `src/`, with a paired notebook workflow.
+
+Recommended layout:
 
 ```text
 pathspace-lab/
@@ -133,6 +112,7 @@ pathspace-lab/
     math_overview.md
     qa_proxy_notes.md
     visualization_guide.md
+    notebook_acceptance_guide.md
   notebooks/
     01_dp_softdp_qa_layered_path.ipynb
     paired/
@@ -179,7 +159,7 @@ pathspace-lab/
     execute_notebook.sh
 ```
 
-### 2.2 Notebook pairing policy
+### 1.2 Notebook pairing policy
 
 Use Jupytext pairing:
 
@@ -193,65 +173,109 @@ notebooks/01_dp_softdp_qa_layered_path.ipynb
 notebooks/paired/01_dp_softdp_qa_layered_path.py
 ```
 
-Notebook pairing keeps version-control diffs readable while still letting users run a normal Jupyter notebook. Jupytext documents the percent format as scripts where notebook cells are delimited by `# %%`.
+Notebook pairing keeps version-control diffs readable while still letting users run a normal Jupyter notebook.
 
-Reference: https://jupytext.readthedocs.io/en/latest/formats-scripts.html
-
-### 2.3 Source-of-truth policy
+### 1.3 Source-of-truth policy
 
 The source of truth is:
 
-1. `docs/*.md` for math, QA claims, and visualization semantics.
-2. `src/` for reusable implementation.
-3. `tests/` for correctness expectations.
-4. `notebooks/paired/*.py` for notebook narrative and cell order.
-5. `.ipynb` for the rendered notebook artifact.
+1. `src/` for all reusable implementation.
+2. `tests/` for correctness expectations.
+3. `notebooks/paired/*.py` for notebook narrative and cell order.
+4. `.ipynb` for rendered notebook output, optional in git depending on team preference.
 
-The paired `.py` file should be reviewed in PRs. The `.ipynb` can be regenerated or executed as a CI artifact.
+The paired `.py` file should be reviewed in PRs. The `.ipynb` should be regenerated or executed as a CI artifact when possible.
+
+### 1.3.1 Notebook-side acceptance policy
+
+Every issue should have a notebook-side acceptance step. The human reviewer should run the notebook from a clean kernel up to the newly implemented section and verify the expected visible result.
+
+For machine checks, use notebook execution when available:
+
+```bash
+jupyter nbconvert --execute --to notebook \
+  notebooks/01_dp_softdp_qa_layered_path.ipynb \
+  --output /tmp/pathspace_lab_notebook_check.ipynb
+```
+
+The machine execution check catches hidden state and broken cells. It does not replace human visual review.
+
+Reference: `docs/notebook_acceptance_guide.md`.
+
+### 1.4 Documentation policy
+
+Create these documents early:
+
+```text
+docs/math_overview.md
+docs/qa_proxy_notes.md
+docs/visualization_guide.md
+docs/notebook_acceptance_guide.md
+```
+
+`docs/math_overview.md` should explain:
+
+- layered DAG path energy,
+- hard DP recurrence,
+- Soft-DP Boltzmann distribution,
+- feasible-subspace QA Hamiltonian.
+
+`docs/qa_proxy_notes.md` should explain:
+
+- what the QA proxy preserves,
+- what it does not preserve,
+- how it differs from transverse-field Ising QA,
+- what claims are allowed.
+
+`docs/visualization_guide.md` should explain:
+
+- DP value heatmap,
+- Soft-DP marginal heatmap,
+- QA marginal heatmap,
+- path probability streams,
+- energy and entropy curves,
+- probability flow vs quantum current.
+
+`docs/notebook_acceptance_guide.md` should explain:
+
+- what notebook-visible result each issue must produce,
+- what a human should run,
+- what the expected visual or printed result should be,
+- when temporary diagnostic plots are allowed,
+- when those temporary plots should be replaced by official visualizers.
 
 ---
 
-## 3. Development workflow for humans and AI agents
+## 2. Development workflow for humans and AI agents
 
-### 3.1 Branch naming
+### 2.1 Branch naming
 
 Use one branch per issue:
 
 ```text
 issue-00-project-scaffold
-issue-01-core-interfaces
-issue-02-layered-dag-problem
-issue-03-observables
-issue-04-hard-dp
-issue-05-soft-dp
-issue-06-qa-hamiltonians
-issue-07-qa-evolution
-issue-08-heatmaps
-issue-09-problem-plot
-issue-10-streams-dashboard
-issue-11-flow-current
-issue-12-notebook-narrative
-issue-13-notebook-execution
-issue-14-doc-guardrails
-issue-15-mvp-polish
+issue-01-layered-dag-problem
+issue-02-hard-dp
+issue-03-soft-dp
+issue-04-feasible-qa
+issue-05-visualization-core
+issue-06-notebook-narrative
 ```
 
-### 3.2 Commit style
+### 2.2 Commit style
 
 Use small commits:
 
 ```text
 scaffold package layout
-add math overview skeleton
 add layered dag problem
-add planted gold and decoy generator
 add hard dp solver
 add soft dp path marginals
-add qa laplacian driver
+add feasible qa hamiltonians
 add notebook section 1 narrative
 ```
 
-### 3.3 AI execution note requirement
+### 2.3 AI execution note requirement
 
 After each issue, the AI agent must add a short note to the issue or PR description:
 
@@ -268,33 +292,26 @@ After each issue, the AI agent must add a short note to the issue or PR descript
 - Command: `pytest ...`
 - Result: ...
 
-### Spec docs checked or updated
-- `docs/math_overview.md`: checked / updated / not applicable
-- `docs/qa_proxy_notes.md`: checked / updated / not applicable
-- `docs/visualization_guide.md`: checked / updated / not applicable
-
-### Deviations from roadmap
+### Deviations from spec
 - ...
 
 ### Open questions
 - ...
 ```
 
-The AI agent must not silently change public interfaces beyond the issue scope.
+The AI agent should not silently change public interfaces beyond the issue scope.
 
-### 3.4 Review order
+### 2.4 Review order
 
 For each issue, the human reviewer should check in this order:
 
 1. Scope: Did the PR only do the issue?
-2. Spec sync: Were the companion docs checked or updated?
-3. API: Are names and signatures understandable?
-4. Tests: Are correctness tests present?
-5. Math: Does implementation match formulas in `docs/math_overview.md`?
-6. QA claims: Does text match `docs/qa_proxy_notes.md`?
-7. Visualization semantics: Do figures match `docs/visualization_guide.md`?
-8. Notebook impact: Does it help the final narrative?
-9. Diff hygiene: Are generated outputs kept out unless explicitly needed?
+2. API: Are names and signatures understandable?
+3. Tests: Are correctness tests present?
+4. Math: Does implementation match formulas?
+5. Notebook impact: Does it help the final narrative?
+6. Notebook run: Can the human run the notebook up to the new section and see the expected result from `docs/notebook_acceptance_guide.md`?
+7. Diff hygiene: Are generated outputs kept out unless explicitly needed?
 
 ---
 
@@ -311,28 +328,28 @@ This is the most important first issue. It sets the rails so later AI coding wor
 - Create `pyproject.toml`.
 - Create `src/pathspace_lab/` package layout.
 - Create `tests/` layout with one smoke test.
-- Create `docs/` and add the three spec documents:
+- Create `docs/` with three skeleton docs:
   - `math_overview.md`
   - `qa_proxy_notes.md`
   - `visualization_guide.md`
+  - `notebook_acceptance_guide.md`
 - Create `notebooks/` and `notebooks/paired/` directories.
 - Create a minimal notebook placeholder or paired script placeholder.
 - Add `.gitignore` for Python, notebook checkpoints, build artifacts, cache files.
 - Add a minimal `README.md` with project goal and non-goals.
-- Add or copy `DEVELOPMENT_ROADMAP.md`.
+- Add a minimal `DEVELOPMENT_ROADMAP.md` if this file is not already in repo.
 - Add simple import smoke test.
 - Add basic commands to README:
   - install editable package,
   - run tests,
-  - sync paired notebook,
-  - execute notebook later.
+  - run notebook execution check later.
 
 ## Not todo
 
 - Do not implement solvers.
 - Do not implement plotting.
 - Do not introduce Qiskit, OpenJij, dimod, or QuTiP.
-- Do not build a large notebook yet.
+- Do not build a large notebook yet. Issue 00 may create a placeholder; Issue 00A turns it into a runnable living skeleton.
 - Do not add generated notebook outputs.
 
 ## Suggested `pyproject.toml`
@@ -364,10 +381,6 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 ```
 
-Pytest recommends using isolated environments and project configuration such as `pyproject.toml` for development workflows.
-
-Reference: https://docs.pytest.org/en/stable/explanation/goodpractices.html
-
 ## Human acceptance criteria
 
 - A new contributor can run:
@@ -384,7 +397,7 @@ import pathspace_lab
 ```
 
 - The directory layout matches the intended architecture.
-- The three docs exist and contain substantive guardrails, not just placeholders.
+- Documentation skeletons exist and state the scientific boundaries.
 - No solver or visualization logic is prematurely added.
 
 ## AI acceptance criteria
@@ -394,10 +407,9 @@ The AI agent must report:
 - exact files created,
 - exact test command run,
 - whether import smoke test passed,
-- whether the three spec documents were created,
 - any package or environment assumptions.
 
-## Required tests
+## Suggested smoke test
 
 ```python
 def test_import_package():
@@ -405,6 +417,115 @@ def test_import_package():
     assert pathspace_lab is not None
 ```
 
+
+---
+
+# Issue 00A: Notebook harness and living tutorial skeleton
+
+## Goal
+
+Turn the placeholder notebook from Issue 00 into a runnable living tutorial skeleton before implementing more backend logic.
+
+This issue exists because notebook-side human verification is part of every later issue.
+
+Reference: `docs/notebook_acceptance_guide.md`.
+
+## Todo
+
+- Create or update:
+  - `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+  - `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- Add the final section headings as markdown cells.
+- Add a setup cell importing:
+  - `numpy`
+  - `pandas`
+  - `matplotlib.pyplot`
+  - `pathspace_lab`
+- Add a small status table showing implemented and pending components.
+- Add a markdown note explaining that the notebook will grow issue by issue.
+- Ensure the notebook can run top to bottom from a clean kernel.
+
+## Not todo
+
+- Do not implement solvers.
+- Do not implement problem generation.
+- Do not add fake results.
+- Do not add code cells for future sections that raise errors.
+
+## Notebook-side human acceptance
+
+Open the notebook and run all cells.
+
+Expected visible result:
+
+- Notebook title appears.
+- Setup imports run without error.
+- A status table appears with components such as:
+  - `LayeredDAGProblem`
+  - `Hard DP`
+  - `Soft-DP`
+  - `Feasible-subspace QA`
+  - `Visualizers`
+- Later sections exist as markdown placeholders.
+- No cell fails.
+
+Suggested check cell:
+
+```python
+import pathspace_lab
+print("Pathspace Lab import OK")
+```
+
+## AI acceptance criteria
+
+The AI agent must report:
+
+- files changed,
+- whether the paired script and `.ipynb` are synchronized,
+- whether the notebook runs from a clean kernel,
+- which future sections are present as placeholders.
+
+## Required tests or checks
+
+At minimum:
+
+```bash
+pytest
+```
+
+If `nbconvert` is already available:
+
+```bash
+jupyter nbconvert --execute --to notebook \
+  notebooks/01_dp_softdp_qa_layered_path.ipynb \
+  --output /tmp/pathspace_lab_notebook_check.ipynb
+```
+
+## Execution notes
+
+### Implemented
+- Replaced the placeholder notebook with a runnable living tutorial skeleton.
+- Added setup imports, an import sanity print, a component status table, and markdown placeholders for the final narrative sections.
+- Kept future sections markdown-only so they do not fail before backend implementation exists.
+
+### Changed files
+- `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+
+### Validation run
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest`
+- Result: passed, `1 passed`.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m jupyter nbconvert --execute --to notebook notebooks/01_dp_softdp_qa_layered_path.ipynb --output pathspace_lab_notebook_check.ipynb`
+- Result: passed.
+
+### Deviations from spec
+- Added a small `src/` path discovery block in the notebook setup cell so clean-kernel execution works even before the package is installed editable in the active kernel environment.
+
+### Pivot
+- The initial nbconvert check failed because the executing kernel could not import `pathspace_lab`; the notebook harness was adjusted to find local `src/` from either the repository root or the `notebooks/` directory.
+
+### Open questions
+- None.
 ---
 
 # Issue 01: Implement `PathDPProblem` protocol and shared trace dataclasses
@@ -413,9 +534,9 @@ def test_import_package():
 
 Define the core interfaces that all later solvers and visualizers consume.
 
-Reference:
+Notebook role: demonstrate the data contract with a toy `Frame` and `SolverTrace`.
 
-- `docs/math_overview.md`, sections “Three spaces” and “Shape and normalization conventions”.
+Reference: `docs/notebook_acceptance_guide.md`, Issue 01.
 
 ## Todo
 
@@ -475,7 +596,61 @@ class PathDPProblem(Protocol):
 - Tests pass.
 - The agent explains why each field exists.
 - The agent lists which later issue consumes each interface.
-- The agent confirms no spec doc update was needed, or updates `docs/math_overview.md` if shape conventions changed.
+
+## Execution notes
+
+### Implemented
+- Added `PathDPProblem` as the shared structural protocol for path-DP problems.
+- Added `State` and `Path` aliases to keep problem, solver, and visualization signatures consistent.
+- Added `Frame` and `SolverTrace` dataclasses for solver snapshots and ordered method traces.
+- Added notebook data-contract demo with a toy `Frame`, printed `SolverTrace` summary, and a small dummy heatmap.
+
+### Field purpose
+- `Frame.progress`: comparable progress coordinate for DP layers, Soft-DP beta progress, or QA anneal fraction.
+- `Frame.label`: short display label for tables and figures.
+- `Frame.cell_heat`: projected layer-node marginal or score heatmap consumed by Soft-DP, QA, and heatmap visualizers.
+- `Frame.value_heat`: DP value table, kept separate because DP values are not probabilities.
+- `Frame.path_probs`: complete-path probabilities used by Soft-DP and QA-derived measurement distributions.
+- `Frame.amplitudes`: complex QA state over complete feasible paths.
+- `Frame.edge_heat`: optional projected edge quantities such as Soft-DP flow or QA occupancy.
+- `Frame.observables`: scalar diagnostics such as energy, entropy, success probability, norm, or spectral gap.
+- `Frame.metadata`: non-contract method details.
+- `SolverTrace.method`: identifies the producing mechanism.
+- `SolverTrace.problem_name`: labels the problem instance without requiring the full object.
+- `SolverTrace.frames`: ordered snapshots consumed by notebooks and visualizers.
+- `SolverTrace.paths` and `SolverTrace.energies`: optional shared ordering for complete-path plots and observables.
+- `SolverTrace.metadata`: trace-level solver parameters or notes.
+
+### Later issue consumers
+- Issue 02 consumes `PathDPProblem`, `State`, and `Path` for `LayeredDAGProblem`.
+- Issues 04-07 consume `Frame` and `SolverTrace` for Hard DP, Soft-DP, and QA solver outputs.
+- Issues 08-11 consume `Frame` and `SolverTrace` for heatmaps, streams, dashboards, flow, and current visualizations.
+
+### Changed files
+- `src/pathspace_lab/problems/base.py`
+- `src/pathspace_lab/problems/__init__.py`
+- `src/pathspace_lab/utils/typing.py`
+- `src/pathspace_lab/utils/__init__.py`
+- `tests/test_problem_base.py`
+- `tests/test_typing.py`
+- `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- `DEVELOPMENT_ROADMAP.md`
+
+### Validation run
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest`
+- Result: passed, `6 passed`.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m jupyter nbconvert --execute --to notebook notebooks/01_dp_softdp_qa_layered_path.ipynb --output pathspace_lab_notebook_check.ipynb`
+- Result: passed.
+
+### Deviations from spec
+- No solver, concrete problem, or official plotting helper was added. The notebook heatmap remains a direct matplotlib toy diagnostic as requested by the Issue 01 acceptance guide.
+
+### Pivot
+- No business/product-level pivot. The main implementation choice was to keep trace fields optional so one dataclass can serve DP values, Soft-DP probabilities, and QA amplitudes without forcing solver-specific assumptions into the base protocol.
+
+### Open questions
+- None.
 
 ---
 
@@ -483,12 +658,11 @@ class PathDPProblem(Protocol):
 
 ## Goal
 
-Implement the first concrete problem class and a seeded generator with a gold path and a decoy path.
+Implement the first concrete problem class.
 
-Reference:
+Notebook role: create the first real problem instance, enumerate paths, print the brute-force optimum, and show a simple node-cost heatmap.
 
-- `docs/math_overview.md`, sections “MVP problem”, “Planted gold path and decoy path”.
-- `docs/visualization_guide.md`, sections “Problem graph plot” and “Suggested notebook figure order”.
+Reference: `docs/math_overview.md` and `docs/notebook_acceptance_guide.md`, Issue 02.
 
 ## Todo
 
@@ -496,22 +670,21 @@ Reference:
 - Implement `LayeredDAGProblem` dataclass with:
   - `node_cost: np.ndarray` of shape `(L, W)`
   - `edge_cost: np.ndarray` of shape `(L - 1, W, W)`
+  - optional `metadata: dict` for planted gold/decoy paths and notebook annotations
 - Implement graph construction with artificial source and sink.
 - Implement path enumeration.
 - Implement path energy.
 - Implement state coordinates.
 - Implement heatmap cell mapping.
 - Implement `make_planted_layered_problem` generator.
-- In the generator, support or return metadata for:
-  - gold path,
-  - decoy path,
-  - seed.
-- Add tests for shapes, graph acyclicity, path count, path energy, and source/sink omission from heatmaps.
+- The generator must create both a planted gold path and a decoy path.
+- Store planted path hints in inspectable metadata, for example `problem.metadata["gold_path"]` and `problem.metadata["decoy_path"]`.
+- Add tests for shapes, graph acyclicity, path count, path energy, and metadata presence.
 
 ## Not todo
 
 - Do not implement DP solver.
-- Do not implement plotting, except maybe a tiny debug-only helper if strictly necessary.
+- Do not implement plotting, except maybe a tiny debug-only function if strictly necessary.
 - Do not support variable-width layers yet.
 - Do not support arbitrary graph input yet.
 
@@ -520,27 +693,26 @@ Reference:
 A visible path is:
 
 \[
-p=(v_0,v_1,\dots,v_{L-1}).
+p=(v_0,v_1,\dots,v_{L-1})
 \]
 
 Path energy is:
 
 \[
 E(p)=\sum_{\ell=0}^{L-1}c_{\ell,v_\ell}
-+\sum_{\ell=0}^{L-2}e_{\ell,v_\ell,v_{\ell+1}}.
++\sum_{\ell=0}^{L-2}e_{\ell,v_\ell,v_{\ell+1}}
 \]
 
 The number of feasible paths must be:
 
 \[
-W^L.
+W^L
 \]
 
 ## Human acceptance criteria
 
 - The implementation is clear enough to inspect by eye.
-- The generator creates nontrivial deterministic instances with a seed.
-- The default generated instance has a visible gold path and a visible decoy path.
+- The generator creates nontrivial but deterministic instances with a seed.
 - Source and sink are handled consistently and do not appear in the main heatmap.
 - `path_energy` matches the mathematical formula.
 
@@ -551,9 +723,7 @@ The AI agent must provide:
 - output of `pytest tests/test_layered_dag.py`,
 - number of paths for default problem,
 - optimal path and energy for one seeded instance,
-- decoy path and energy for one seeded instance,
-- any assumptions about source/sink edge weights,
-- confirmation that `docs/math_overview.md` remains consistent.
+- any assumptions about source/sink edge weights.
 
 ## Required tests
 
@@ -562,7 +732,6 @@ The AI agent must provide:
 - `test_each_path_visits_one_node_per_layer`
 - `test_path_energy_matches_manual_calculation`
 - `test_state_cell_omits_source_and_sink`
-- `test_planted_problem_is_deterministic_under_seed`
 
 ---
 
@@ -570,55 +739,83 @@ The AI agent must provide:
 
 ## Goal
 
-Implement reusable math utilities for probabilities, marginals, entropy, energy, and success probability.
+Implement reusable math utilities for probabilities, marginals, entropy, and energy.
 
-Reference:
+Notebook role: show uniform and optimal-path distributions, their marginals, entropy, and effective path count.
 
-- `docs/math_overview.md`, sections “Common observables”, “Shape and normalization conventions”.
+Reference: `docs/math_overview.md`, `docs/visualization_guide.md`, and `docs/notebook_acceptance_guide.md`, Issue 03.
 
 ## Todo
 
 - Add `src/pathspace_lab/math/observables.py`.
 - Implement:
-  - `path_entropy(path_probs)`
-  - `effective_num_paths(path_probs)`
-  - `expected_energy(path_probs, energies)`
-  - `residual_energy(path_probs, energies)`
-  - `success_probability(path_probs, energies, tol=...)`
-  - `cell_marginals(problem, paths, path_probs)`
-  - `edge_marginals_from_paths(paths, path_probs)`
-- Add validation for shape mismatches.
-- Add tests for normalization and simple known examples.
+  - `normalize_probs`
+  - `path_entropy`
+  - `effective_num_paths`
+  - `expected_energy`
+  - `success_probability`
+  - `cell_marginals`
+  - `edge_marginals_from_paths`
+- Add numerical stability with `eps` where needed.
+- Add tests for all utilities.
 
 ## Not todo
 
 - Do not implement Soft-DP solver yet.
-- Do not implement QA current yet.
-- Do not add plotting.
+- Do not implement QA.
+- Do not create plotting.
+
+## Mathematical requirements
+
+Entropy:
+
+\[
+S=-\sum_pP(p)\log P(p)
+\]
+
+Effective number of paths:
+
+\[
+N_{\text{eff}}=e^S
+\]
+
+Expected energy:
+
+\[
+\mathbb E[E]=\sum_pP(p)E(p)
+\]
+
+Success probability:
+
+\[
+P_{\text{success}}=\sum_{p:E(p)=E^*}P(p)
+\]
+
+Cell marginal:
+
+\[
+M_{\ell,v}=\sum_{p:(\ell,v)\in p}P(p)
+\]
+
+For a layered path problem where each path visits exactly \(L\) visible cells:
+
+\[
+\sum_{\ell,v}M_{\ell,v}=L
+\]
 
 ## Human acceptance criteria
 
-- Functions are small and individually testable.
-- Probability normalization assumptions are explicit.
-- Marginal sums obey the invariants in `docs/math_overview.md`.
+- Utilities are method-agnostic.
+- Soft-DP and QA can both use the same marginal functions.
+- Tests cover edge cases such as zero probabilities and multiple optimal paths.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- tests run,
-- at least one simple hand-computed example,
-- marginal sum checks,
-- whether any doc update was needed.
-
-## Required tests
-
-- `test_entropy_uniform_distribution`
-- `test_expected_energy_manual_example`
-- `test_success_probability_unique_optimum`
-- `test_cell_marginals_sum_to_layers`
-- `test_cell_marginals_sum_to_one_per_layer`
-- `test_edge_marginals_manual_example`
+- which observables are used by Soft-DP,
+- which observables are used by QA,
+- which tests verify normalization and marginals.
 
 ---
 
@@ -628,50 +825,66 @@ The AI agent must report:
 
 Implement deterministic min-plus DP over the problem DAG.
 
-Reference:
+Notebook role: run DP on the planted problem, compare with brute force, and show a first DP value heatmap.
 
-- `docs/math_overview.md`, section “Hard DP”.
-- `docs/visualization_guide.md`, section “Hard DP value heatmap”.
+Reference: `docs/math_overview.md`, `docs/visualization_guide.md`, and `docs/notebook_acceptance_guide.md`, Issue 04.
 
 ## Todo
 
 - Add `src/pathspace_lab/solvers/hard_dp.py`.
 - Implement `solve_hard_dp(problem) -> SolverTrace`.
-- Compute distance values with topological order.
-- Compute backpointers.
-- Produce frames, preferably one frame per visible layer for `LayeredDAGProblem`.
-- Include `value_heat` in frames.
-- Include final path and final energy in trace metadata.
-- Add tests comparing DP result to enumerated path minimum.
+- Compute DP values in topological order.
+- Store backpointers.
+- Emit frames, preferably one frame per layer for `LayeredDAGProblem`.
+- Add `traceback_best_path` helper.
+- Add tests comparing DP optimum to brute-force path enumeration.
 
 ## Not todo
 
 - Do not implement Soft-DP.
-- Do not implement plotting.
-- Do not implement generic cyclic graph shortest paths.
+- Do not implement QA.
+- Do not implement production visualizers.
+- Do not over-optimize.
+
+## Mathematical requirements
+
+\[
+D(\text{source})=0
+\]
+
+\[
+D(v)=\min_{u\to v}\left[D(u)+w(u,v)\right]
+\]
+
+Backpointer:
+
+\[
+\operatorname{pred}(v)=\arg\min_{u\to v}\left[D(u)+w(u,v)\right]
+\]
 
 ## Human acceptance criteria
 
-- DP recurrence is recognizable.
-- Trace output can drive a value heatmap.
-- Final DP value equals enumerated optimum for small instances.
-- Backpointer traceback returns a valid path.
+- DP final value equals brute-force optimum.
+- Backtrace gives a valid path.
+- Frames contain enough data for future visualization.
+- The solver works for any DAG implementing `PathDPProblem`, not just by indexing arrays directly.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- final DP path and energy for a seeded problem,
-- enumerated optimum and equality check,
-- tests run,
-- whether `docs/math_overview.md` or visualization docs needed updates.
+- DP best value,
+- brute-force best value,
+- whether they match,
+- path returned by traceback,
+- test command output.
 
 ## Required tests
 
-- `test_hard_dp_matches_enumerated_optimum`
-- `test_hard_dp_traceback_is_valid_path`
-- `test_hard_dp_value_heat_shape`
-- `test_hard_dp_source_sink_not_in_heatmap`
+- `test_hard_dp_matches_bruteforce`
+- `test_traceback_path_is_valid`
+- `test_traceback_energy_equals_dp_value`
+- `test_hard_dp_frames_have_value_heat`
 
 ---
 
@@ -679,12 +892,11 @@ The AI agent must report:
 
 ## Goal
 
-Implement the classical thermal path distribution and its projected marginals.
+Implement Boltzmann path distributions and their projections.
 
-Reference:
+Notebook role: animate or snapshot classical probability condensation from beta 0 to high beta.
 
-- `docs/math_overview.md`, section “Soft-DP / classical thermal path distribution”.
-- `docs/visualization_guide.md`, sections “Soft-DP marginal heatmap” and “Top-k path probability stream”.
+Reference: `docs/math_overview.md`, `docs/visualization_guide.md`, and `docs/notebook_acceptance_guide.md`, Issue 05.
 
 ## Todo
 
@@ -693,104 +905,153 @@ Reference:
 - Enumerate paths if not provided.
 - Compute path energies.
 - Use log-sum-exp for numerical stability.
-- Produce frames with:
-  - `path_probs`,
-  - `cell_heat`,
-  - optional `edge_heat`,
-  - observables: expected energy, residual energy, entropy, effective paths, success probability.
-- Add tests for \(\beta=0\), high-beta behavior, marginal sums, and observables.
+- Compute path probabilities for each beta.
+- Compute cell marginals.
+- Compute edge marginals.
+- Compute observables:
+  - expected energy,
+  - entropy,
+  - effective paths,
+  - success probability,
+  - residual energy.
+- Add tests for beta zero and high beta behavior.
 
 ## Not todo
 
 - Do not implement forward-backward dynamic programming yet.
+- Do not optimize for large instances.
 - Do not implement QA.
-- Do not claim Soft-DP is quantum.
+- Do not plot inside solver.
+
+## Mathematical requirements
+
+\[
+P_\beta(p)=\frac{e^{-\beta E(p)}}{Z_\beta}
+\]
+
+\[
+Z_\beta=\sum_pe^{-\beta E(p)}
+\]
+
+At \(\beta=0\):
+
+\[
+P_0(p)=\frac{1}{|\mathcal P|}
+\]
+
+As \(\beta\to\infty\), if the optimum is unique:
+
+\[
+P_\beta(p^*)\to1
+\]
 
 ## Human acceptance criteria
 
-- At \(\beta=0\), path probabilities are uniform.
-- At large \(\beta\), success probability increases on simple unique-optimum cases.
-- Marginal heatmaps match the formulas.
-- Trace is compatible with visualization tools.
+- Soft-DP is clearly described as a classical thermal baseline.
+- All probabilities are normalized.
+- The solver outputs the same `Frame` structure as other solvers.
+- The solver does not call plotting code.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- path probability sum checks,
-- entropy at \(\beta=0\),
-- final success probability on a seeded problem,
-- tests run,
-- doc sync status.
+- probability sum at beta 0,
+- entropy at beta 0,
+- success probability at max beta,
+- whether cell marginals sum to `L`,
+- tests run.
 
 ## Required tests
 
-- `test_soft_dp_beta_zero_uniform`
-- `test_soft_dp_probs_sum_to_one`
-- `test_soft_dp_cell_marginals_sum_to_layers`
-- `test_soft_dp_success_probability_increases_on_simple_case`
-- `test_soft_dp_uses_logsumexp_stably`
+- `test_softdp_beta_zero_uniform`
+- `test_softdp_probs_sum_to_one`
+- `test_softdp_cell_marginals_sum_to_num_layers`
+- `test_softdp_success_probability_increases_for_planted_instance`
+- `test_softdp_expected_energy_decreases_with_beta_for_planted_instance`
 
 ---
 
-# Issue 06: Implement feasible QA Hamiltonian builders
+# Issue 06: Implement schedules and Hamiltonian builders for feasible-subspace QA
 
 ## Goal
 
-Build the Hamiltonians needed for feasible-subspace QA.
+Build the static mathematical objects needed for QA without running time evolution yet.
 
-Reference:
+Notebook role: show the schedule curves, Hamiltonian shapes, driver uniform residual, and config-graph size.
 
-- `docs/math_overview.md`, section “Feasible-subspace quantum annealing”.
-- `docs/qa_proxy_notes.md`, sections “Why use a feasible path basis?” and “Why use a Laplacian driver?”.
+Reference: `docs/math_overview.md`, `docs/qa_proxy_notes.md`, `docs/visualization_guide.md`, and `docs/notebook_acceptance_guide.md`, Issue 06.
 
 ## Todo
 
-- Add or update `src/pathspace_lab/math/hamiltonians.py`.
-- Implement path indexing:
-  - `paths -> index`
-  - `index -> paths`
-- Implement problem Hamiltonian:
-  - diagonal sparse matrix with path energies.
-- Implement configuration graph builder:
-  - edge between paths that differ in exactly one visible layer.
-- Implement Laplacian driver:
-  - `H_D = D - A`.
-- Implement optional normalization utilities:
-  - normalized problem Hamiltonian,
-  - normalized driver Hamiltonian.
-- Add tests for diagonal, symmetry, uniform ground state, and dimensions.
+- Add `src/pathspace_lab/math/schedules.py`.
+- Implement linear schedule:
+  - `A(s) = 1 - s`
+  - `B(s) = s`
+- Add `src/pathspace_lab/math/hamiltonians.py`.
+- Implement:
+  - `build_problem_hamiltonian(energies)`
+  - `build_path_config_graph(problem, paths)`
+  - `build_laplacian_driver(config_graph)`
+  - `normalize_hamiltonian`
+- Add tests for Hermiticity, diagonal problem Hamiltonian, Laplacian properties.
 
 ## Not todo
 
 - Do not implement time evolution yet.
-- Do not implement QUBO or transverse-field Ising QA.
-- Do not add Qiskit.
+- Do not implement transverse-field Ising QA.
+- Do not implement QUBO penalty Hamiltonian.
+- Do not optimize for large path spaces.
+
+## Mathematical requirements
+
+Problem Hamiltonian:
+
+\[
+H_P=\operatorname{diag}(E(p_1),\dots,E(p_N))
+\]
+
+Configuration graph:
+
+- one node per complete path,
+- edge between paths that differ by one local layer choice.
+
+Driver Hamiltonian:
+
+\[
+H_D=L_{\text{cfg}}=D-A
+\]
+
+For a connected configuration graph, the uniform vector is a ground state of \(L_{\text{cfg}}\):
+
+\[
+L_{\text{cfg}}\mathbf 1=0
+\]
 
 ## Human acceptance criteria
 
-- The Hamiltonians match the formulas in `docs/math_overview.md`.
-- The Laplacian driver has the uniform vector as a ground state when the configuration graph is connected.
-- Matrices are sparse.
-- Path indexing is stable.
+- Hamiltonian construction is separated from time evolution.
+- The driver choice is documented as a feasible-subspace Laplacian driver.
+- The code checks or asserts that the config graph is connected for MVP problems.
+- The tests make the uniform-ground-state property explicit.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- number of paths and Hamiltonian shape for default instance,
-- whether the configuration graph is connected,
-- norm of `H_D @ ones`,
-- tests run,
-- confirmation that QA wording still matches `docs/qa_proxy_notes.md`.
+- matrix shapes,
+- number of config graph nodes and edges,
+- whether config graph is connected,
+- whether `H_D @ uniform ≈ 0`,
+- whether `H_P` diagonal equals path energies.
 
 ## Required tests
 
 - `test_problem_hamiltonian_is_diagonal`
-- `test_problem_hamiltonian_ground_energy_matches_optimum`
-- `test_configuration_graph_edges_hamming_one`
+- `test_problem_hamiltonian_matches_energies`
+- `test_config_graph_has_one_node_per_path`
 - `test_laplacian_driver_is_symmetric`
-- `test_laplacian_driver_uniform_ground_state`
+- `test_laplacian_uniform_ground_state`
 
 ---
 
@@ -798,73 +1059,99 @@ The AI agent must report:
 
 ## Goal
 
-Simulate coherent time evolution under the feasible-subspace QA Hamiltonian.
+Implement continuous-time feasible-subspace QA simulation.
 
-Reference:
+Notebook role: run the first genuine QA-proxy trajectory and display QA marginal snapshots plus norm, energy, entropy, and success curves.
 
-- `docs/math_overview.md`, sections “Time evolution”, “QA-specific observables”.
-- `docs/qa_proxy_notes.md`, sections “Evolution and measurement” and “Allowed claims”.
+Reference: `docs/math_overview.md`, `docs/qa_proxy_notes.md`, `docs/visualization_guide.md`, and `docs/notebook_acceptance_guide.md`, Issue 07.
 
 ## Todo
 
 - Add `src/pathspace_lab/solvers/qa_feasible.py`.
 - Add `QASimulationConfig` dataclass.
-- Implement linear schedule by default:
-  - `A(s)=1-s`
-  - `B(s)=s`
-- Simulate:
-
-\[
-\psi(t+\Delta t)\approx e^{-iH(s_k)\Delta t}\psi(t).
-\]
-
-- Use sparse matrix exponential action, e.g. `scipy.sparse.linalg.expm_multiply`.
-- Produce `SolverTrace` frames with:
+- Implement `solve_feasible_qa(problem, config, paths=None) -> SolverTrace`.
+- Use sparse matrix exponential action for stepwise evolution.
+- Normalize state defensively after each step.
+- Compute per-frame:
   - amplitudes,
   - path probabilities,
   - cell marginals,
-  - expected energy,
+  - expected original energy,
   - residual energy,
   - entropy,
   - effective paths,
   - success probability,
   - state norm.
-- Add optional gap computation at selected grid points using sparse eigensolver.
-- Add tests for norm preservation, probability sums, heatmap sums, and ground-energy consistency.
+- Add optional spectral gap computation.
+- Add tests for norm preservation and probability normalization.
 
 ## Not todo
 
-- Do not implement noisy dynamics.
-- Do not implement QUBO transverse-field QA.
-- Do not implement Qiskit circuit simulation.
-- Do not claim finite-time evolution guarantees the optimum.
+- Do not add Qiskit.
+- Do not add noise or open-system dynamics.
+- Do not add QUBO constraints.
+- Do not claim hardware equivalence.
+- Do not tune performance beyond small MVP sizes.
+
+## Mathematical requirements
+
+Initial state:
+
+\[
+|\psi(0)\rangle=\frac{1}{\sqrt N}\sum_i|p_i\rangle
+\]
+
+Annealing Hamiltonian:
+
+\[
+H(s)=A(s)H_D+B(s)H_P
+\]
+
+Time step:
+
+\[
+|\psi(t+\Delta t)\rangle\approx e^{-iH(s_k)\Delta t}|\psi(t)\rangle
+\]
+
+Path probability:
+
+\[
+P_s(p_i)=|\psi_i(s)|^2
+\]
+
+Cell marginal:
+
+\[
+M_{\ell,v}^{QA}(s)=\sum_{p:(\ell,v)\in p}|\psi_p(s)|^2
+\]
 
 ## Human acceptance criteria
 
-- The QA implementation is readable and directly tied to formulas.
-- The trace can drive QA heatmaps and dashboards.
-- The state norm remains close to 1.
-- The model is clearly named as a feasible-subspace proxy.
+- The solver clearly uses the same path list and energies as Soft-DP.
+- Norm remains close to 1.
+- The initial QA path distribution is uniform.
+- The final QA distribution is not asserted to be optimal, only measured by success probability.
+- The solver output can be consumed by the same visualizers as Soft-DP.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- default `QASimulationConfig`,
-- state norm max deviation,
-- final success probability on a seeded problem,
-- whether gap computation is enabled or skipped,
-- tests run,
-- doc sync status for `docs/qa_proxy_notes.md`.
+- initial path probability max/min,
+- final norm error,
+- final success probability,
+- final expected energy,
+- whether cell marginals sum to `L`,
+- whether tests pass.
 
 ## Required tests
 
 - `test_qa_initial_distribution_uniform`
 - `test_qa_state_norm_preserved`
 - `test_qa_path_probs_sum_to_one`
-- `test_qa_cell_marginals_sum_to_layers`
-- `test_qa_final_problem_ground_energy_matches_classical_optimum`
-- `test_qa_trace_contains_required_observables`
+- `test_qa_cell_marginals_sum_to_num_layers`
+- `test_qa_final_energy_observable_finite`
+- `test_qa_gap_nonnegative_when_computed`
 
 ---
 
@@ -872,293 +1159,371 @@ The AI agent must report:
 
 ## Goal
 
-Implement reusable heatmap visualizers for DP values, Soft-DP marginals, and QA marginals.
+Create basic plotting functions for DP values, Soft-DP marginals, and QA marginals.
 
-Reference:
+Notebook role: replace temporary diagnostic heatmap snippets with official `pathspace_lab.viz.heatmaps` functions.
 
-- `docs/visualization_guide.md`, sections 1 through 6.
+Reference: `docs/visualization_guide.md` and `docs/notebook_acceptance_guide.md`, Issue 08.
 
 ## Todo
 
 - Add `src/pathspace_lab/viz/heatmaps.py`.
 - Implement:
-  - `plot_value_heatmap(frame, ...)`
-  - `plot_cell_marginal_heatmap(frame, ...)`
+  - `plot_value_heatmap(frame, ax=None, title=None)`
+  - `plot_cell_marginal_heatmap(frame, ax=None, title=None)`
   - `plot_trace_heatmap_grid(trace, frame_indices, ...)`
-  - `compare_traces_by_progress(soft_trace, qa_trace, ...)`
-  - `compare_traces_by_entropy(soft_trace, qa_trace, ...)`
-- Label all plots with the quantity being shown.
-- Ensure source/sink are not shown in main heatmaps.
-- Add lightweight tests for function execution on small traces.
+  - `compare_traces_by_progress(soft_trace, qa_trace, progress_values)`
+  - `compare_traces_by_entropy(soft_trace, qa_trace, entropy_values)`
+- Add minimal tests that functions return matplotlib axes or figures.
 
 ## Not todo
 
-- Do not implement full animation yet unless simple.
-- Do not implement graph plotting.
-- Do not hardcode `LayeredDAGProblem` assumptions beyond array shape.
+- Do not over-style.
+- Do not use seaborn.
+- Do not create animations yet unless easy.
+- Do not couple plotting functions to concrete solver classes.
 
 ## Human acceptance criteria
 
-- Plot titles and labels make it clear whether heat is value, probability marginal, or comparison.
-- The visualizer consumes `Frame` and `SolverTrace` rather than recomputing solver internals.
-- Entropy-alignment comparison is clearly labeled.
+- The same marginal plotter works for Soft-DP and QA.
+- Axes labels are clear:
+  - x-axis: layer,
+  - y-axis: node,
+  - color: probability or value.
+- The title or colorbar distinguishes values from probabilities.
+- Figures are readable in a notebook.
 
 ## AI acceptance criteria
 
-The AI agent must report:
+The AI agent must include:
 
-- example figures created or smoke-tested,
-- whether visual labels match `docs/visualization_guide.md`,
-- tests run,
-- any plotting limitations.
+- a small screenshot or notebook cell output if working interactively, or
+- a test that saves a figure to a temporary file.
 
 ## Required tests
 
-- `test_plot_value_heatmap_runs`
-- `test_plot_cell_marginal_heatmap_runs`
+- `test_plot_value_heatmap_returns_axes`
+- `test_plot_cell_marginal_heatmap_returns_axes`
 - `test_compare_traces_by_progress_runs`
-- `test_compare_traces_by_entropy_selects_frames`
 
 ---
 
-# Issue 09: Implement problem graph plot
+# Issue 09: Implement problem graph plot and path highlighting
 
 ## Goal
 
-Implement the initial graph visualization, including gold and decoy path highlighting.
+Plot the layered DAG problem with optional highlighted paths and edge weights.
 
-Reference:
+Notebook role: turn the problem introduction from a cost table into an actual graph picture with gold and decoy paths.
 
-- `docs/visualization_guide.md`, section “Problem graph plot”.
-- `docs/math_overview.md`, section “Planted gold path and decoy path”.
+Reference: `docs/visualization_guide.md` and `docs/notebook_acceptance_guide.md`, Issue 09.
 
 ## Todo
 
 - Add `src/pathspace_lab/viz/problem_plot.py`.
-- Implement `plot_problem_graph(problem, ...)`.
-- Support optional:
-  - highlighted gold path,
-  - highlighted decoy path,
-  - edge heat,
-  - node heat,
-  - labels.
-- Keep plotting readable for small `L,W`.
-- Add smoke tests.
+- Implement `plot_problem_graph(problem, highlight_path=None, edge_heat=None, node_heat=None, ax=None)`.
+- Support:
+  - node positions from `problem.state_coord`,
+  - highlighted optimal path,
+  - optional edge heat for Soft-DP flow later.
+- Add basic plotting tests.
 
 ## Not todo
 
-- Do not implement path-space current plot here.
-- Do not over-design styling.
-- Do not require plotly.
+- Do not implement interactive graph widgets.
+- Do not implement current visualization here.
+- Do not add advanced layout algorithms.
 
 ## Human acceptance criteria
 
-- The plot explains the problem before any solver runs.
-- Gold path and decoy path can be visually distinguished.
-- Source/sink are either clearly shown as artificial or omitted with explanation.
+- The problem graph communicates layers and valid transitions.
+- Source and sink do not dominate the visual layout.
+- Highlighted path is easy to see.
+- Function is reusable in the notebook introduction and summary.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- a seeded example with gold and decoy metadata,
-- whether the plot uses problem coordinates,
-- tests run.
+- whether the function accepts a `Path` returned by `traceback_best_path`,
+- whether it works with no highlighted path,
+- whether it can save a figure without display.
 
 ---
 
-# Issue 10: Implement top-k streams and observable dashboard
+# Issue 10: Implement top-k path probability streams and observable dashboard
 
 ## Goal
 
-Visualize path-level probability competition and global observables.
+Plot the main comparison curves.
 
-Reference:
+Notebook role: show the probability contest among optimal, decoy, and low-energy paths; then show energy/entropy/success/gap diagnostics.
 
-- `docs/visualization_guide.md`, sections “Top-k path probability stream” and “Energy / entropy / success dashboard”.
+Reference: `docs/visualization_guide.md` and `docs/notebook_acceptance_guide.md`, Issue 10.
 
 ## Todo
 
 - Add `src/pathspace_lab/viz/streams.py`.
-- Implement `plot_topk_path_probabilities(...)`.
-- Ensure stable path selection across traces.
-- Include gold and decoy paths if provided.
+- Implement `plot_topk_path_probabilities(traces, paths, energies, top_k=8, ax=None)`.
 - Add `src/pathspace_lab/viz/dashboard.py`.
-- Implement `plot_observable_dashboard(...)`.
-- Include:
+- Implement `plot_observable_dashboard(traces)`.
+- Include curves for:
   - expected energy,
   - residual energy,
   - entropy,
   - effective paths,
   - success probability,
-  - QA gap if present.
-- Add smoke tests.
+  - QA spectral gap if available.
+- Add tests that plotting functions run on small traces.
 
 ## Not todo
 
-- Do not implement flow/current plots yet.
-- Do not imply non-monotonic QA probabilities prove quantum advantage.
+- Do not create interactive dashboards yet.
+- Do not overcomplicate path labels.
+- Do not assume every trace has every observable.
 
 ## Human acceptance criteria
 
-- Top-k streams make gold-vs-decoy competition visible.
-- Dashboard separates shared metrics from QA-only metrics.
-- Labels make clear whether x-axis is beta progress, anneal fraction, or frame progress.
+- The stream plot can show Soft-DP and QA on comparable axes.
+- The dashboard gracefully skips missing observables.
+- The plot titles explain whether x-axis is beta progress or anneal progress.
+- Top-k paths are selected deterministically, preferably by low energy plus optimum/decoy inclusion.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- which paths were selected for top-k plot,
-- whether gold/decoy are included,
-- tests run,
-- any missing observables.
+- which top-k paths are selected,
+- whether all expected observables are present,
+- which observables were skipped due to missing data.
 
 ---
 
-# Issue 11: Implement Soft-DP flow and QA current visualizations
+# Issue 11: Implement Soft-DP flow and QA current visualization
 
 ## Goal
 
-Implement the most conceptually distinctive visualization: classical probability flow versus quantum current.
+Add the most conceptually distinctive visualization: classical flow through the problem DAG versus quantum current through path space.
 
-Reference:
+Notebook role: make the hidden geometry difference visible and explicit.
 
-- `docs/math_overview.md`, sections “Edge marginals” and “Probability current”.
-- `docs/visualization_guide.md`, sections “Soft-DP edge flow”, “QA path-space current”, and “QA occupancy projected onto original DAG”.
+Reference: `docs/math_overview.md`, `docs/qa_proxy_notes.md`, `docs/visualization_guide.md`, and `docs/notebook_acceptance_guide.md`, Issue 11.
 
 ## Todo
 
 - Add `src/pathspace_lab/viz/currents.py`.
-- Implement Soft-DP edge-flow plot on the original DAG.
-- Implement QA path-space current computation if not already in math utilities.
-- Implement QA path-space current plot for small top-probability subsets.
-- Optionally implement QA edge occupancy projection.
-- Add tests for current computation on tiny Hermitian matrices.
+- Implement:
+  - `plot_softdp_edge_flow(problem, frame, ax=None)`
+  - `plot_qa_path_current(problem, qa_frame, H, paths, max_nodes=30, ax=None)`
+- Add `quantum_currents(psi, H, threshold)` to `math/observables.py` or `math/hamiltonians.py`.
+- For small instances only, plot path-space graph nodes as complete paths.
+- Add tests for current computation shape and antisymmetry.
 
 ## Not todo
 
-- Do not draw QA current on the original DAG and label it as literal current.
-- Do not require large graph layouts.
-- Do not over-optimize for large path spaces.
+- Do not force current visualization to support large `W^L` path spaces.
+- Do not mix QA current with original DAG edge flow as if they were identical.
+- Do not claim QA current flows along original problem edges.
+
+## Mathematical requirements
+
+Soft-DP edge flow:
+
+\[
+F(u\to v)=\sum_{p:(u\to v)\in p}P(p)
+\]
+
+Quantum current:
+
+\[
+J_{q\to p}=2\operatorname{Im}\left[\psi_p^*H_{pq}\psi_q\right]
+\]
+
+The notebook must state:
+
+> Soft-DP flow lives on the original problem DAG. QA current lives on the graph of complete paths.
 
 ## Human acceptance criteria
 
-- Soft-DP flow is nonnegative and drawn on original problem edges.
-- QA current is signed and drawn on path-space edges.
-- The distinction between occupancy and current is explicit.
-- The notebook text explains the hidden-space difference.
+- The visualization makes the different hidden spaces explicit.
+- Labels say “original DAG flow” and “path-space current”.
+- The current plot is optional if the path space is too large.
+- There is no misleading visual overlay that implies QA current travels through DP cells.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- a tiny current sanity check,
-- how many path-space nodes are shown by default,
-- whether any currents were thresholded,
-- tests run,
-- confirmation that visualization claims match `docs/visualization_guide.md`.
+- current matrix or dictionary size,
+- threshold used,
+- whether current antisymmetry holds approximately,
+- whether large graphs are safely truncated.
 
 ---
 
-# Issue 12: Implement notebook narrative
+# Issue 12: Consolidate the MVP notebook narrative
 
 ## Goal
 
-Build the MVP notebook narrative using the implemented modules.
+Polish the notebook that has been growing throughout the previous issues into a clear, runnable, educational tutorial.
 
-Reference:
+This is not the first notebook issue. It is the consolidation pass.
 
-- `docs/math_overview.md`
-- `docs/qa_proxy_notes.md`
-- `docs/visualization_guide.md`
+Reference: `docs/notebook_acceptance_guide.md`, Issue 12.
 
 ## Todo
 
-Create or update:
+- Create or update:
+  - `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+  - `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- Use imports from `src/`, not copied code.
+- Include sections:
+  1. Introduction
+  2. Create a small layered graph
+  3. Hard DP as deterministic message passing
+  4. Soft-DP as a classical thermal bridge
+  5. Feasible-subspace QA
+  6. Same projection, different dynamics
+  7. Observable dashboard
+  8. Flow vs current
+  9. Summary and limitations
+- Ensure notebook can run top to bottom.
+- Add short conceptual text before and after each figure.
+
+## Not todo
+
+- Do not include large class definitions in notebook.
+- Do not include long solver code in notebook.
+- Do not include Qiskit/OpenJij sections in MVP notebook.
+- Do not overclaim quantum realism.
+
+## Notebook narrative skeleton
+
+### 1. Introduction
+
+Explain:
+
+- one problem,
+- three mechanisms,
+- one shared projection.
+
+Key sentence:
+
+> The heatmaps share a coordinate system, not a mechanism.
+
+### 2. Create a small layered graph
+
+Explain:
+
+- each path is a solution,
+- costs are planted to create an optimal path and decoy path,
+- the path space is small enough to enumerate.
+
+### 3. Hard DP
+
+Explain:
+
+- DP stores best partial cost per state,
+- it does not store path probabilities,
+- traceback reconstructs the final path.
+
+### 4. Soft-DP
+
+Explain:
+
+- replace min with a thermal distribution over paths,
+- beta controls concentration,
+- this is the classical probabilistic bridge.
+
+### 5. Feasible-subspace QA
+
+Explain:
+
+- basis state equals complete feasible path,
+- driver ground state is uniform over feasible paths,
+- problem Hamiltonian is diagonal in path energies,
+- dynamics are Hamiltonian evolution.
+
+### 6. Same projection, different dynamics
+
+Explain:
+
+- compare Soft-DP and QA by progress,
+- compare Soft-DP and QA by entropy,
+- if heatmaps differ at matched entropy, QA is not merely a disguised temperature schedule.
+
+### 7. Observable dashboard
+
+Explain:
+
+- energy and success can be compared,
+- entropy measures concentration,
+- spectral gap is QA-only.
+
+### 8. Flow vs current
+
+Explain:
+
+- Soft-DP flow is nonnegative and lives on the original DAG,
+- QA current is signed and lives on path-space graph,
+- this is the key hidden geometry difference.
+
+### 9. Summary and limitations
+
+State:
+
+- what was shown,
+- what was not claimed,
+- what future work will add.
+
+## Human acceptance criteria
+
+- Notebook reads like a coherent tutorial.
+- A reader can understand the project without opening source files.
+- The notebook has no hidden state or manual execution assumptions.
+- The notebook has honest limitations.
+
+## AI acceptance criteria
+
+The AI agent must report:
+
+- whether notebook runs from a clean kernel,
+- total runtime on default parameters,
+- any cells that are slow,
+- generated figures list,
+- any narrative gaps.
+
+---
+
+# Issue 13: Add notebook execution checks
+
+## Goal
+
+Ensure the final notebook remains executable.
+
+## Todo
+
+- Add script:
 
 ```text
-notebooks/01_dp_softdp_qa_layered_path.ipynb
-notebooks/paired/01_dp_softdp_qa_layered_path.py
+scripts/execute_notebook.sh
 ```
 
-Notebook sections:
-
-1. Introduction: three mechanisms, one projection canvas.
-2. Create layered graph with gold and decoy paths.
-3. Hard DP as deterministic message passing.
-4. Soft-DP as classical thermal bridge.
-5. Feasible-subspace QA as continuous Hamiltonian proxy.
-6. Same projection, different dynamics.
-7. Observable dashboard.
-8. Flow versus current.
-9. Summary and limitations.
-
-## Not todo
-
-- Do not put solver internals into notebook cells.
-- Do not use optional dependencies.
-- Do not make the default instance too large.
-- Do not overclaim QA realism.
-
-## Narrative requirements
-
-The notebook must include these statements, in natural wording:
-
-- The shared heatmap is a projection, not a shared mechanism.
-- DP values are not probabilities.
-- Soft-DP is a classical thermal baseline.
-- The QA model is a feasible-subspace proxy, not a D-Wave hardware simulator.
-- QA current flows in path space, not along original DP graph edges.
-- Gold and decoy paths are pedagogical devices used to make probability competition visible.
-
-## Human acceptance criteria
-
-- A reader can follow the story without opening source files.
-- The notebook still points to docs for mathematical details.
-- Figures appear in a pedagogically logical order.
-- Limitations are honest and visible.
-
-## AI acceptance criteria
-
-The AI agent must report:
-
-- notebook sections completed,
-- source modules imported,
-- whether paired script was updated,
-- whether docs were referenced,
-- any cells that are placeholders.
-
----
-
-# Issue 13: Notebook execution checks
-
-## Goal
-
-Ensure the notebook can run top-to-bottom from a clean environment.
-
-Reference:
-
-- `docs/visualization_guide.md` for expected figure order.
-
-## Todo
-
-- Add `scripts/execute_notebook.sh`.
+- Use either `jupyter nbconvert --execute` or a pytest notebook plugin.
 - Add a README command for notebook execution.
-- Use `jupyter nbconvert --execute` or equivalent.
-- Keep default runtime small.
-- Add optional CI note.
+- Optionally add a CI job later.
 
 ## Not todo
 
-- Do not commit large generated outputs unless team decides to.
-- Do not add heavy CI matrix.
+- Do not require notebook execution for every small PR if it is too slow.
+- Do not store huge executed outputs by default.
+- Do not make CI dependent on optional Qiskit/OpenJij packages.
 
 ## Human acceptance criteria
 
-- A contributor can run the notebook without manual cell surgery.
-- Runtime is reasonable for a toy MVP.
-- Failures are easy to diagnose.
+- There is at least one command that runs the notebook top to bottom.
+- Runtime is acceptable for MVP parameters.
+- The notebook can be executed after a fresh install.
 
 ## AI acceptance criteria
 
@@ -1166,57 +1531,54 @@ The AI agent must report:
 
 - exact execution command,
 - runtime,
-- whether outputs were generated,
-- any failed cells.
-
-Reference: nbconvert can execute notebook input cells and save the result.
-
-https://nbconvert.readthedocs.io/en/latest/execute_api.html
+- success/failure,
+- error traceback if failed.
 
 ---
 
-# Issue 14: Documentation and scientific guardrails
+# Issue 14: Add documentation pass and scientific guardrails
 
 ## Goal
 
-Review and tighten all educational and scientific text.
-
-Reference:
-
-- `docs/math_overview.md`
-- `docs/qa_proxy_notes.md`
-- `docs/visualization_guide.md`
+Finalize the educational and mathematical documentation for MVP.
 
 ## Todo
 
-- Review README.
-- Review all three docs.
-- Review notebook markdown cells.
-- Ensure formulas and code names are consistent.
-- Ensure all overclaims are removed.
-- Ensure gold/decoy story is described as pedagogical.
-- Ensure visualizations are not mislabeled.
+- Fill `docs/math_overview.md`.
+- Fill `docs/qa_proxy_notes.md`.
+- Fill `docs/visualization_guide.md`.
+- Add README links to these docs.
+- Add notebook limitations section.
+- Add glossary:
+  - path space,
+  - DP state,
+  - configuration graph,
+  - marginal,
+  - probability current,
+  - spectral gap,
+  - feasible-subspace QA proxy.
 
 ## Not todo
 
-- Do not add new features.
-- Do not rewrite the project structure.
-- Do not make prose too verbose.
+- Do not add literature review yet.
+- Do not add hardware QA claims.
+- Do not add API docs for future extensions.
 
 ## Human acceptance criteria
 
-- A skeptical reader can tell what is implemented and what is not.
-- A beginner can tell how to read each plot.
-- QA proxy claims are precise.
+- A mathematically careful reader can see exactly what is being simulated.
+- The difference between feasible-subspace QA and transverse-field Ising QA is clear.
+- Every visualization has a documented mathematical quantity.
+- The README is accurate but not bloated.
 
 ## AI acceptance criteria
 
 The AI agent must report:
 
-- claims changed,
-- formulas corrected,
 - docs updated,
-- any remaining ambiguous wording.
+- formulas added,
+- claims checked for overreach,
+- any uncertain language removed or softened.
 
 ---
 
@@ -1224,310 +1586,272 @@ The AI agent must report:
 
 ## Goal
 
-Prepare the first shareable MVP release.
+Make the first release coherent and runnable.
 
 ## Todo
 
 - Run full test suite.
-- Execute notebook top-to-bottom.
-- Check paired notebook diff.
-- Check all docs are linked from README.
-- Check default parameters produce readable plots.
-- Check no optional dependencies are required.
-- Check no generated cache files are committed.
-- Add a short “What to try next” section to README.
+- Run notebook from clean kernel.
+- Check README commands.
+- Check docs links.
+- Check notebook narrative.
+- Check default parameters for runtime.
+- Add example output images if desired.
+- Tag MVP release or create GitHub milestone.
 
 ## Not todo
 
-- Do not add new algorithms.
-- Do not start QUBO/Qiskit/OpenJij work in this issue.
-- Do not broaden problem support before the first MVP lands.
+- Do not add new features during polish.
+- Do not add second problem type yet.
+- Do not add QUBO/Qiskit/OpenJij yet.
 
 ## Human acceptance criteria
 
-The repo is ready for a first public PR or internal demo.
+The following commands succeed:
+
+```bash
+pip install -e ".[dev]"
+pytest
+bash scripts/execute_notebook.sh
+```
+
+The notebook includes:
+
+- planted layered DAG visualization,
+- DP value heatmap,
+- Soft-DP marginal heatmap,
+- QA marginal heatmap,
+- Soft-DP vs QA comparison,
+- top-k path probability plot,
+- energy/entropy/success dashboard,
+- spectral gap plot,
+- flow/current view,
+- summary and limitations.
 
 ## AI acceptance criteria
 
-The AI agent must report:
+The AI agent must produce a final MVP report:
 
-- full test command and result,
-- notebook execution command and result,
-- files changed,
-- final limitations,
-- follow-up issue suggestions.
+```markdown
+## MVP release report
 
----
+### Commands run
+- ...
 
-## Notebook narrative skeleton
+### Test result
+- ...
 
-The notebook should be built around this narrative arc.
+### Notebook execution result
+- ...
 
-### Section 0: Introduction
+### Figures generated
+- ...
 
-Explain the three mechanisms:
+### Known limitations
+- ...
 
-- Hard DP: local values.
-- Soft-DP: classical path probabilities.
-- QA: amplitudes over complete paths.
-
-Point readers to:
-
-- `docs/math_overview.md`
-- `docs/qa_proxy_notes.md`
-- `docs/visualization_guide.md`
-
-### Section 1: Create a layered graph
-
-Generate a planted problem with:
-
-- gold path,
-- decoy path,
-- small `L,W`,
-- deterministic seed.
-
-Show the graph.
-
-### Section 2: Hard DP
-
-Show:
-
-- recurrence,
-- DP value heatmap,
-- backpointers,
-- traceback.
-
-Emphasize:
-
-> DP values are compressed partial-history summaries, not probabilities.
-
-### Section 3: Soft-DP
-
-Show:
-
-- Boltzmann path distribution,
-- marginal heatmap,
-- top-k path stream.
-
-Emphasize:
-
-> Soft-DP is the classical thermal bridge.
-
-### Section 4: Feasible-subspace QA
-
-Show:
-
-- path basis,
-- \(H_D\),
-- \(H_P\),
-- annealing Hamiltonian,
-- QA marginal heatmap.
-
-Emphasize:
-
-> This is a feasible-subspace QA proxy, not hardware QA.
-
-### Section 5: Same projection, different dynamics
-
-Compare:
-
-- Soft-DP vs QA by progress.
-- Soft-DP vs QA by entropy.
-
-Emphasize:
-
-> Similar concentration does not imply the same mechanism.
-
-### Section 6: Observable dashboard
-
-Show:
-
-- expected energy,
-- residual energy,
-- entropy,
-- effective paths,
-- success probability,
-- QA gap.
-
-### Section 7: Flow versus current
-
-Show:
-
-- Soft-DP edge flow on the original DAG.
-- QA current on path-space graph.
-
-Emphasize:
-
-> Classical probabilistic flow travels through problem edges. QA current travels between complete configurations.
-
-### Section 8: Summary
-
-End with:
-
-> Same canvas, different hidden geometry.
-
----
-
-## Roadmap after MVP
-
-Do not implement these before the MVP is stable.
-
-### Phase 1: Second path-DAG problem
-
-Add grid path or edit-distance-style alignment.
-
-Goal: show that the interface is not hardcoded to the layered graph.
-
-### Phase 2: Cyclic graph problems via time expansion
-
-Support original graphs with cycles by lifting them into:
-
-\[
-(t,v).
-\]
-
-The lifted graph is acyclic because time moves forward.
-
-### Phase 3: Standard QUBO / transverse-field QA extension
-
-Add a separate notebook:
-
-```text
-02_from_path_dp_to_qubo_qa.ipynb
+### Suggested next issues
+- ...
 ```
 
-Introduce:
+---
 
-- one-hot variables,
-- penalty terms,
+# MVP roadmap summary
+
+## Build order
+
+1. Issue 00: scaffold
+2. Issue 00A: notebook harness and living tutorial skeleton
+3. Issue 01: interfaces and traces
+4. Issue 02: layered DAG problem
+5. Issue 03: observables and marginals
+6. Issue 04: hard DP
+7. Issue 05: Soft-DP
+8. Issue 06: QA Hamiltonian builders
+9. Issue 07: QA time evolution
+10. Issue 08: core heatmaps
+11. Issue 09: problem graph plot
+12. Issue 10: streams and dashboard
+13. Issue 11: flow/current
+14. Issue 12: notebook narrative consolidation
+15. Issue 13: notebook execution checks
+16. Issue 14: docs and guardrails
+17. Issue 15: MVP polish
+
+## Minimal vertical slice
+
+If a faster demo is needed, implement only:
+
+1. Issue 00
+2. Issue 00A
+3. Issue 01
+4. Issue 02
+5. Issue 03
+6. Issue 04
+7. Issue 05
+8. Issue 06
+9. Issue 07
+10. One simple official heatmap plot from Issue 08
+
+This gives a working DP vs Soft-DP vs QA comparison before polish, with notebook-visible output at every step.
+
+---
+
+# Future roadmap beyond MVP
+
+## Phase 1: Add second path-DAG problem
+
+Candidate:
+
+- grid path,
+- edit-distance-style alignment,
+- sequence alignment.
+
+Goal:
+
+Show that the pipeline is not hardcoded to layered Viterbi paths.
+
+## Phase 2: Add time-expanded cyclic graph support
+
+Original graphs may have cycles. Lift them into a DAG:
+
+\[
+(t,v)
+\]
+
+This supports:
+
+- fixed-horizon graph walks,
+- Bellman-Ford-style shortest paths,
+- finite-horizon MDPs.
+
+## Phase 3: Add QUBO transverse-field QA extension
+
+Add optional QUBO encoding with one-hot variables and penalty terms.
+
+Visualize:
+
 - feasible mass,
-- illegal-state mass,
-- bitstring basis,
-- transverse-field driver.
+- invalid state mass,
+- penalty energy,
+- comparison with feasible-subspace QA.
 
-D-Wave’s `dimod` documentation describes Binary Quadratic Models as containing Ising and QUBO models used by samplers.
+## Phase 4: Add OpenJij SA/SQA sampler comparison
 
-Reference: https://docs.dwavequantum.com/en/latest/ocean/api_ref_dimod/
+Use samplers for final distribution and benchmark-style plots.
 
-### Phase 4: OpenJij SA/SQA comparison
+Visualize:
 
-Add sampler-based comparison.
+- final energy histogram,
+- success probability,
+- residual energy.
 
-OpenJij documents `SQASampler` as simulated quantum annealing on a classical computer.
+## Phase 5: Add Qiskit gate-model appendix
 
-Reference: https://tutorial.openjij.org/en/tutorial/001-openjij_introduction.html
+Show Hamiltonian simulation and Trotterized evolution as a gate-model counterpart.
 
-### Phase 5: Qiskit gate-model appendix
+## Phase 6: Add hypergraph DP
 
-Add Hamiltonian simulation or Trotterized evolution appendix.
+Support DP where one subproblem depends on multiple subproblems:
 
-This should remain separate from the MVP because the clean feasible-path Hamiltonian is not naturally a local Pauli Hamiltonian without encoding work.
+\[
+u \to (v_1, v_2, \dots, v_k)
+\]
 
-### Phase 6: Hypergraph DP
-
-Move from path-DAG to weighted acyclic hypergraphs for:
+Needed for:
 
 - matrix-chain multiplication,
 - CKY parsing,
 - interval DP,
 - tree DP.
 
-### Phase 7: More realistic open-system QA
+## Phase 7: Add open-system QA experiments
 
 Explore:
 
-- noisy dynamics,
 - thermal effects,
+- dephasing,
+- Lindblad dynamics,
 - freeze-out,
-- nonlinear schedules,
+- schedule pauses,
 - reverse annealing.
 
 ---
 
-## Final MVP definition of done
+# Definition of MVP done
 
-A fresh clone can run:
+MVP is done when:
+
+- tests pass,
+- notebook runs top to bottom,
+- docs explain the math and limitations,
+- the three methods can be compared on the same visualization canvas,
+- all claims are scientifically bounded,
+- future extensions are clearly separated from MVP.
+
+The MVP should feel like a clear glass machine: small, inspectable, and alive with moving probability light.
+
+
+---
+
+# Appendix A: Notebook-first human acceptance quick guide
+
+For full details, see `docs/notebook_acceptance_guide.md`.
+
+## Current situation after Issue 00
+
+If Issue 00 is complete but the notebook is still only a placeholder, do **Issue 00A** next before continuing to Issue 01.
+
+## Per-issue notebook expectation summary
+
+| Issue | Notebook-visible outcome | Human visual check |
+|---|---|---|
+| 00A | Living notebook skeleton | Title, setup, status table, pending sections |
+| 01 | Data contract demo | Toy `Frame` heatmap and printed `SolverTrace` summary |
+| 02 | First real problem instance | Path count, optimal path printout, node-cost heatmap, gold/decoy metadata |
+| 03 | Probability/marginal utilities | Uniform vs optimal-path marginal heatmaps, entropy/effective path values |
+| 04 | Hard DP | DP value heatmap, DP optimum equals brute force |
+| 05 | Soft-DP | Marginal snapshots over beta, entropy decreases, success increases |
+| 06 | QA static objects | Schedule plot, Hamiltonian shapes, config graph size, `H_D @ uniform ≈ 0` |
+| 07 | QA trajectory | QA marginal snapshots, norm near 1, energy/entropy/success curves |
+| 08 | Official heatmap visualizers | Temporary heatmap snippets replaced by reusable viz functions |
+| 09 | Problem graph plot | Layered graph with highlighted gold and optional decoy path |
+| 10 | Streams/dashboard | Top-k path probability curves and observable dashboard |
+| 11 | Flow/current | Soft-DP flow on original DAG, QA current on path-space graph |
+| 12 | Narrative consolidation | Notebook reads as one coherent tutorial |
+| 13 | Execution checks | Clean-kernel notebook execution command succeeds |
+| 14 | Docs guardrails | Notebook links docs and avoids overclaiming |
+| 15 | MVP polish | Final notebook is readable, runnable, and visually coherent |
+
+## Human review ritual for every issue
+
+1. Pull the branch.
+2. Install/update editable package if needed:
 
 ```bash
 pip install -e ".[dev]"
-pytest
-jupyter nbconvert --execute notebooks/01_dp_softdp_qa_layered_path.ipynb --to notebook --output /tmp/pathspace_lab_executed.ipynb
 ```
 
-and the notebook produces:
+3. Run unit tests:
 
-1. A planted layered DAG visualization.
-2. A Hard DP value heatmap.
-3. A Soft-DP marginal heatmap.
-4. A feasible-subspace QA marginal heatmap.
-5. Soft-DP vs QA comparison by progress and entropy.
-6. Top-k path probability curves including gold and decoy paths.
-7. Energy / entropy / success dashboard.
-8. QA spectral gap curve.
-9. Soft-DP flow and QA current visualization.
-10. A clear written explanation of what is and is not being claimed.
+```bash
+pytest
+```
 
-The MVP is done when the small toy universe runs, teaches, and does not overclaim. ✨
+4. Open the notebook from a clean kernel.
+5. Run all cells up to the newly implemented section.
+6. Confirm the issue-specific visual outcome listed above.
+7. Confirm that future sections are placeholders rather than broken cells.
+8. Confirm that any changed math, QA claims, or visualization semantics are reflected in the corresponding docs.
 
-## Issue 00 execution notes
+## Machine notebook check
 
-### Implemented
-- Created Python package metadata and editable-install configuration.
-- Created the `src/pathspace_lab` package namespace with planned subpackages.
-- Created the `tests` layout with an import smoke test.
-- Created the `docs` layout and moved the three companion specification documents into it.
-- Created notebook and paired-script placeholders for the future MVP notebook.
-- Added `.gitignore`, `jupytext.toml`, and a README with setup, test, notebook sync, and future execution commands.
+When dependencies are available, run:
 
-### Changed files
-- `.gitignore`
-- `README.md`
-- `DEVELOPMENT_ROADMAP.md`
-- `docs/math_overview.md`
-- `docs/qa_proxy_notes.md`
-- `docs/visualization_guide.md`
-- `jupytext.toml`
-- `notebooks/01_dp_softdp_qa_layered_path.ipynb`
-- `notebooks/paired/01_dp_softdp_qa_layered_path.py`
-- `pyproject.toml`
-- `src/pathspace_lab/__init__.py`
-- `src/pathspace_lab/problems/__init__.py`
-- `src/pathspace_lab/solvers/__init__.py`
-- `src/pathspace_lab/math/__init__.py`
-- `src/pathspace_lab/viz/__init__.py`
-- `src/pathspace_lab/utils/__init__.py`
-- `tests/test_import_package.py`
+```bash
+jupyter nbconvert --execute --to notebook \
+  notebooks/01_dp_softdp_qa_layered_path.ipynb \
+  --output /tmp/pathspace_lab_notebook_check.ipynb
+```
 
-### Validation run
-- Command: `pytest`
-- Result: pending at note creation; run after scaffold write.
-
-### Spec docs checked or updated
-- `docs/math_overview.md`: moved into required location and checked for issue00 consistency.
-- `docs/qa_proxy_notes.md`: moved into required location and checked for issue00 consistency.
-- `docs/visualization_guide.md`: moved into required location and checked for issue00 consistency.
-
-### Deviations from roadmap
-- The three companion documents already existed at the repository root, so they were moved into `docs/` instead of recreated.
-- Script files under `scripts/` were left for later notebook execution issues; README commands document the planned workflow.
-
-### Open questions
-- None for issue00.
-
-### Issue 00 validation update
-- Editable install initially failed because `pyproject.toml` had a UTF-8 BOM from Windows PowerShell output. The file was rewritten as UTF-8 without BOM.
-- Added an explicit setuptools build backend and `src` package discovery so editable installs are backend-defined.
-### Issue 00 pairing update
-- Jupytext configuration was adjusted to pair `notebooks/*.ipynb` with `notebooks/paired/*.py:percent`.
-- README commands now use `python -m jupytext` and `python -m jupyter` so the workflow does not depend on Scripts being on PATH.
-- Removed the extra paired-directory notebook generated during the first sync check.
-### Issue 00 final validation
-- Command: `python -m pip install -e ".[dev]"`
-- Result: passed.
-- Command: `python -m pytest`
-- Result: passed, 1 test.
-- Command: `python -m jupytext --sync notebooks/01_dp_softdp_qa_layered_path.ipynb`
-- Result: passed after using forward slashes in the notebook path on Windows.
-- Command: `python -c "import pathspace_lab; print(pathspace_lab.__version__)"`
-- Result: passed, printed `0.1.0`.
-- Generated validation caches and egg-info were removed after validation.
+This is not a replacement for visual review. It is a smoke test that the notebook has no hidden state or broken future cells.

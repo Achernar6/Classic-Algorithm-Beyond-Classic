@@ -21,4 +21,5 @@ notebooks/*_executed.ipynb
 .DS_Store
 Thumbs.db
 
-[ign]*
+\[ign\]*
+
