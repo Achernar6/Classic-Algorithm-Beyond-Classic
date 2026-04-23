@@ -22,6 +22,8 @@ dev = [
   "pytest",
   "jupytext",
   "nbconvert",
+  "ipykernel",
+  "pywin32; platform_system == 'Windows'",
 ]
 
 [tool.setuptools.packages.find]

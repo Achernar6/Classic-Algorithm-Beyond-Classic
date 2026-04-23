@@ -1,24 +1,46 @@
-# CABC -Round1- Dynamic Programming vs. Quantum Annealing
+# Classic Algorithm Beyond Classic - Round 1
+## Dynamic Programming & Quantum Annealing
 
-A notebook project about dynamic programming, thermal relaxation, and quantum annealing as three different ways of moving through a space of possible paths. Round 1 of the series [classic algorithms beyond classic] (if it's lucky enough to have sequels, but at least for now I plan to generalize this to trikier graph scenarios after the MVP works out.)
+**Classic Algorithm Beyond Classic** is a self-learning project series about reinterpreting classic algorithms from a quantum view: not to replace the classical story (or prove quantum supremacy), but to look at familiar computational structures through a different state space, geometry, and notion of evolution.
 
-It is also a first attempt to make something open in public while being watched by the ... big Other of the internet(?) Basically, I am writing it for myself: to leave a trail of how I learn, test metaphors, and gradually replace vague intuition with runnable objects. If someone later finds the trail useful, even only as a starting point for their own intuition, that would already be more than enough.
+Round 1 starts from a small **layered DAG shortest-path problem**. A solution is a complete path through the layers. The same path problem is then viewed through three related but different mechanisms:
 
-The planned shape of the project is simple:
+- **Hard DP** compresses partial histories into local min-plus values.
+- **Soft-DP** assigns a classical thermal distribution to complete feasible paths.
+- **Feasible-subspace quantum annealing** evolves complex amplitudes over complete feasible paths.
 
-- The notebook is the front door. It should feel like a living essay: runnable, visual, and honest about what it does and does not show.
-- The math notes keep the claims grounded. They are there to stop a beautiful metaphor from quietly becoming a false statement.
-- The visualization notes explain what each picture is allowed to mean. A picture can build intuition, but it can also smuggle in a promise the model never made.
-- The source code and tests support the notebook from underneath. They are not the point of the README, but they keep the exploration from becoming only prose.
-- The roadmap records the staged development of the project, including the boundary that matters most here: this is not a quantum advantage demo, not a D-Wave hardware simulator, and not a proof of quantum supremacy. It is a teaching and thinking tool built around one shared path-space canvas.
+The common visual object is a layer-node canvas. Hard DP, Soft-DP, and the quantum annealing proxy can all be projected onto that canvas (but the projection should not erase the difference between their hidden objects: values, probabilities, and amplitudes do not mean the same thing).
 
-The **central comparison** currently focuses on:
+For the quantum part, the MVP uses a feasible-subspace proxy with the annealing form
 
-- Hard DP compresses histories into local values.
-- Soft-DP treats complete paths as a classical thermal distribution.
-- The feasible-subspace quantum annealing proxy evolves amplitudes over complete feasible paths.
+$$
+H(s)=A(s)H_D+B(s)H_P.
+$$
 
-All three can be projected back onto the same layered graph. What differs is the hidden way each one listens to the possible futures.
+Here the basis states are valid paths, the driver has a uniform feasible ground state, and the problem Hamiltonian has optimal paths as ground states. I know the current proxy has a clear boundary; later rounds can incorporate a more realistic quantum stack like Qiskit or D-wave and generalize toward richer graph and optimization problems.
+
+The goal is to keep the project runnable, inspectable, and mathematically sound while preserving the original reason I am doing it: to synthesize the vague intuitions about **dynamic programming, thermal relaxation, and quantum evolution** into objects I can compute, visualize, and finally graspe.
+
+
+It is also a first attempt to make something open in public while being watched by the ... big Other of the internet??
+
+--**Technical part ends, below is some random chat**--
+
+## About Working with AI
+
+The meaning of this README are fully human-written and original (with a little bit paraphrase). The engineering part of the project was developed mainly with Codex, together with a workflow I have been shaping through personal projects (something close to a state machine, and also very close to what people have recently started calling a harness. Cybernetics does enjoy returning under new names.)
+
+I do not want to divide the work with AI by saying, for example, "I designed this data class, the AI wrote that plotting function." **Most of the ideas came while I was learning the principles and the surrounding technical ecosystem**, but the concrete implementation is too entangled for that kind of accounting to feel honest.
+
+So here is the distinction I care about: **the human role is to keep the purpose, and to let that purpose permeate the whole project.**
+
+We live in a typed world. We have semantics. Lambda calculus is a beautiful warning against underestimating reduction: with only abstraction and application, functions can even stand in for data. Relations are astonishingly powerful. But **a project is not only a pile of reducible transformations**. No speed of logical metonymy can turn every entity into relation without remainder. The decision of **what something is for** cannot be automated away.
+
+What does it mean for purpose to permeate a project? AI can now work surprisingly well at the coarsest level of planning and at the finest level of local execution. The difficult part is the mixing layer between them. Coffee and milk are simple before mixing and simple again after mixing, but in the middle the pattern is at its most complex. Building with AI often feels like living in that middle layer: adding small grains of structure, watching where the system wants to avalanche, then nudging it back toward the purpose. Never let it automate you out of the loop.
+
+The analogy I like is the growth of a single-crystal turbine blade. You do not place every atom by hand. You shape the thermal gradient, the selector, and the boundary conditions so that one orientation survives the competition and grows through a complex form. That is close to how I want to work with AI: not as a replacement for intention, and not as a passive tool, but **a wavefront where human can ride and guide the project to cystalize into the ONE** with your desired form.
+
+(This project is one small crystal grown under that condition.)
 
 ## Why This Exists
 
@@ -33,19 +55,3 @@ Before studying the actual principles and limits of quantum annealing carefully,
 That romance is part of why I was drawn to it.
 
 The hands-on work has also made the limit very clear: this romance does not automatically extend into positive evidence for quantum supremacy. The proxy here is small, controlled, and pedagogical. But I am old enough (not sure) now to appreciate even these fractions of reality. It is already a privilege, an honor to touch a question like this with my own hands.
-
-## About AI Coding
-
-The meaning and language of this README are fully human-written and original. The engineering part of the project was developed mainly with Codex, together with a workflow I have been shaping through personal projects: something close to a state machine, and also very close to what people have recently started calling a harness. Cybernetics does enjoy returning under new names.
-
-I do not want to divide the work with AI by saying, for example, "I designed this data class, the AI wrote that plotting function." Most of the ideas came while I was learning the principles and the surrounding technical ecosystem, but the concrete implementation is too entangled for that kind of accounting to feel honest.
-
-So here is the distinction I care about: the human role is to keep the purpose, and to let that purpose permeate the whole project.
-
-We live in a typed world. We have semantics. Lambda calculus is a beautiful warning against underestimating reduction: with only abstraction and application, functions can even stand in for data. Relations are astonishingly powerful. But a project is not only a pile of reducible transformations. No speed of logical metonymy can turn every entity into relation without remainder. The decision of what something is for cannot be automated away.
-
-What does it mean for purpose to permeate a project? AI can now work surprisingly well at the coarsest level of planning and at the finest level of local execution. The difficult part is the mixing layer between them. Coffee and milk are simple before mixing and simple again after mixing, but in the middle the pattern is at its most complex. Building with AI often feels like living in that middle layer: adding small grains of structure, watching where the system wants to avalanche, then nudging it back toward the purpose.
-
-The image I like is the growth of a single-crystal turbine blade. You do not place every atom by hand. You shape the thermal gradient, the selector, and the boundary conditions so that one orientation survives the competition and grows through a complex form. That is close to how I want to work with AI: not as a replacement for intention, and not as a passive tool, but as a medium whose crystallization still needs a direction.
-
-This project is one small crystal grown under that condition.

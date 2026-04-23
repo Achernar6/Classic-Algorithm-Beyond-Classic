@@ -69,7 +69,7 @@ component_status = pd.DataFrame(
         },
         {
             "Component": "LayeredDAGProblem",
-            "Status": "Pending",
+            "Status": "Implemented",
             "First issue": "02",
             "Notebook role": "Create the first real layered path instance.",
         },
@@ -105,9 +105,85 @@ component_status
 # %% [markdown]
 # ## Create a Planted Layered Path Problem
 #
-# Pending implementation.
+# We now build the first real problem instance. A visible path chooses exactly one node per layer, so a problem with `L` layers and `W` choices per layer has `W ** L` feasible paths.
 #
-# This section will create a small seeded layered DAG. A complete solution will choose one node per layer. The planted gold path will be globally best, while a decoy path will make local-looking decisions less reliable.
+# The generator plants two named paths. The gold path is globally optimal, but the decoy path has the cheaper early prefix and then pays a late transition penalty. That tension is deliberate: later probability plots can show how local attraction and global optimality separate.
+
+# %%
+from pathspace_lab.problems.layered_dag import make_planted_layered_problem
+
+problem = make_planted_layered_problem(L=5, W=3, seed=7)
+paths = problem.enumerate_paths()
+energies = np.array([problem.path_energy(path) for path in paths])
+best_index = int(energies.argmin())
+best_path = paths[best_index]
+
+gold_path = problem.metadata["gold_path"]
+decoy_path = problem.metadata["decoy_path"]
+
+print("num paths:", len(paths))
+print("expected:", problem.W**problem.L)
+print("best energy:", float(energies[best_index]))
+print("best path:", best_path)
+print("gold path:", gold_path)
+print("decoy path:", decoy_path)
+print("gold energy:", problem.metadata["gold_energy"])
+print("decoy energy:", problem.metadata["decoy_energy"])
+print("gold prefix energy:", problem.metadata["gold_prefix_energy"])
+print("decoy prefix energy:", problem.metadata["decoy_prefix_energy"])
+
+# %%
+problem_summary = pd.DataFrame(
+    [
+        {
+            "quantity": "visible layers",
+            "value": problem.L,
+            "note": "source and sink are hidden from heatmaps",
+        },
+        {
+            "quantity": "nodes per layer",
+            "value": problem.W,
+            "note": "fixed width in the MVP",
+        },
+        {
+            "quantity": "feasible paths",
+            "value": len(paths),
+            "note": "equals W ** L",
+        },
+        {
+            "quantity": "gold energy",
+            "value": round(problem.metadata["gold_energy"], 3),
+            "note": "global optimum by construction",
+        },
+        {
+            "quantity": "decoy energy",
+            "value": round(problem.metadata["decoy_energy"], 3),
+            "note": "cheap prefix, late trap",
+        },
+    ]
+)
+
+problem_summary
+
+# %%
+fig, ax = plt.subplots(figsize=(5.0, 2.8))
+image = ax.imshow(problem.node_cost.T, origin="lower", aspect="auto")
+ax.set_title("Planted problem node costs")
+ax.set_xlabel("layer")
+ax.set_ylabel("node")
+ax.set_xticks(range(problem.L))
+ax.set_yticks(range(problem.W))
+
+for ell, v in gold_path:
+    ax.text(ell, v, "G", ha="center", va="center", color="white", weight="bold")
+for ell, v in decoy_path:
+    ax.text(ell, v, "D", ha="center", va="center", color="black", weight="bold")
+
+fig.colorbar(image, ax=ax, label="node cost")
+plt.show()
+
+# %% [markdown]
+# The node-cost heatmap only shows the per-layer selection costs. It does not show transition costs, which is exactly where the decoy's late penalty is hidden. Source and sink are useful for graph algorithms, but the shared canvas for later DP, Soft-DP, and QA projections is only the visible `(layer, node)` grid.
 
 # %% [markdown]
 # ## The Data Contract
