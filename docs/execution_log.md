@@ -139,3 +139,168 @@ This file stores completed issue execution notes that used to live inline in `DE
 ### Open Questions
 
 - None.
+
+## Issue 03: Common Observables and Marginal Utilities
+
+### Implemented
+
+- Added reusable probability utilities for normalization, entropy, effective path count, expected energy, and success probability.
+- Added complete-path projection utilities for visible cell marginals and visible edge marginals.
+- Added notebook-visible `From Paths to Probabilities` section using uniform and optimal-path distributions, including entropy, effective path count, expected energy, success probability, and side-by-side marginal heatmaps.
+- Kept all reusable logic in `src/pathspace_lab/`; the notebook only calls package functions and displays diagnostics.
+
+### Changed Files
+
+- `src/pathspace_lab/math/observables.py`
+- `src/pathspace_lab/math/__init__.py`
+- `tests/test_observables.py`
+- `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- `DEVELOPMENT_ROADMAP.md`
+- `docs/execution_log.md`
+
+### Validation Run
+
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest tests\test_observables.py`
+- Result: passed, `11 passed`.
+- Command: `$env:MPLBACKEND='Agg'; & 'C:\Users\ACH\miniconda3\python.exe' notebooks\paired\01_dp_softdp_qa_layered_path.py`
+- Result: passed; printed `uniform entropy: 5.493061443340546`, `log N: 5.493061443340548`, `uniform effective paths: 242.9999999999993`, `uniform marginal sum: 4.9999999999999964`, and `optimal marginal sum: 5.0`.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m jupytext --sync notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- Result: passed.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest`
+- Result: passed, `26 passed`.
+- Command: `$env:JUPYTER_ALLOW_INSECURE_WRITES='1'; & 'C:\Users\ACH\miniconda3\python.exe' -m jupyter nbconvert --execute --to notebook notebooks/01_dp_softdp_qa_layered_path.ipynb --output pathspace_lab_notebook_check.ipynb --output-dir .pytest_cache`
+- Result: passed; wrote `.pytest_cache\pathspace_lab_notebook_check.ipynb`.
+
+### Deviations From Spec
+
+- None. Edge marginals are returned as a dictionary keyed by visible state edges, which keeps the utility method-agnostic while matching the MVP layered-DAG visible edge semantics.
+
+### Environment Notes
+
+- Running Jupytext sync from the paired `.py` path hit a Windows path pairing mismatch. Syncing from `notebooks/01_dp_softdp_qa_layered_path.ipynb`, as documented in `docs/notebook_acceptance_guide.md`, succeeded.
+- The local Windows nbconvert check still requires `JUPYTER_ALLOW_INSECURE_WRITES=1` because Jupyter cannot update some profile ACL permissions.
+
+### Mathematical Sanity Checks
+
+- Uniform entropy matches `log(N)` for `N = 243`.
+- Uniform effective path count matches `N` within floating-point tolerance.
+- Uniform and optimal-path cell marginal sums both equal `L = 5`.
+- Tests cover zero-probability entropy stability, multiple-optimum success probability, normalization, cell marginal sums, and edge marginal sums.
+
+### Downstream Consumers
+
+- Soft-DP will use `normalize_probs`, `path_entropy`, `effective_num_paths`, `expected_energy`, `success_probability`, `cell_marginals`, and `edge_marginals_from_paths` after constructing Boltzmann path probabilities.
+- Feasible-subspace QA will use the same observables after converting amplitudes to path probabilities via squared magnitudes.
+
+### Open Questions
+
+- None.
+
+## Issue 04: Hard DP Solver
+
+### Implemented
+
+- Added deterministic min-plus Hard DP solver over the shared `PathDPProblem` DAG interface.
+- Stored full distances, backpointers, source/sink, and final best value in `SolverTrace.metadata`.
+- Emitted one `Frame` per visible layer with `value_heat` snapshots for future visualization.
+- Added `traceback_best_path(problem, trace)` to recover the visible optimal path from backpointers.
+- Activated the notebook Hard DP section with DP/brute-force comparison and a temporary direct matplotlib DP value heatmap.
+
+### Changed Files
+
+- `src/pathspace_lab/solvers/hard_dp.py`
+- `src/pathspace_lab/solvers/__init__.py`
+- `tests/test_hard_dp.py`
+- `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- `DEVELOPMENT_ROADMAP.md`
+- `docs/execution_log.md`
+
+### Validation Run
+
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest tests\test_hard_dp.py`
+- Result: passed, `4 passed`.
+- Command: `$env:MPLBACKEND='Agg'; & 'C:\Users\ACH\miniconda3\python.exe' notebooks\paired\01_dp_softdp_qa_layered_path.py`
+- Result: passed; printed DP path `((0, 1), (1, 1), (2, 0), (3, 0), (4, 1))`, DP energy `5.969999999999999`, DP best value `5.970000000000001`, brute-force optimum `5.969999999999999`, and `matches brute force: True`.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m jupytext --sync notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- Result: passed.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest`
+- Result: passed, `30 passed`.
+- Command: `$env:JUPYTER_ALLOW_INSECURE_WRITES='1'; & 'C:\Users\ACH\miniconda3\python.exe' -m jupyter nbconvert --execute --to notebook notebooks/01_dp_softdp_qa_layered_path.ipynb --output pathspace_lab_notebook_check.ipynb --output-dir .pytest_cache`
+- Result: passed; wrote `.pytest_cache\pathspace_lab_notebook_check.ipynb`.
+
+### Deviations From Spec
+
+- None. The solver uses the graph/topological/state-cell protocol rather than indexing concrete layered-DAG arrays directly.
+
+### Mathematical Sanity Checks
+
+- `D(source) = 0` in solver initialization.
+- Each relaxation uses `D(v) = min_u D(u) + w(u, v)` over outgoing DAG edges in topological order.
+- Final DP best value matches brute-force enumeration within floating-point tolerance.
+- Traceback path energy equals the DP sink value.
+- Final frame `value_heat` is finite over all visible cells for the planted instance.
+
+### Environment Notes
+
+- The local Windows nbconvert check still requires `JUPYTER_ALLOW_INSECURE_WRITES=1` because Jupyter cannot update some profile ACL permissions.
+
+### Open Questions
+
+- None.
+
+## Issue 05: Soft-DP Solver
+
+### Implemented
+
+- Added enumerative Soft-DP solver that turns complete-path energies into Boltzmann probabilities for each beta.
+- Used a numerically stable log-sum-exp calculation for path probabilities.
+- Reused common observables for expected energy, residual energy, entropy, effective path count, success probability, cell marginals, and edge marginals.
+- Returned the shared `SolverTrace`/`Frame` structure with `cell_heat`, `path_probs`, `edge_heat`, aligned `paths`, and aligned `energies`.
+- Activated the notebook Soft-DP section with beta snapshots, entropy/success curves, and top low-energy path probabilities including optimal and decoy paths.
+
+### Changed Files
+
+- `src/pathspace_lab/solvers/soft_dp.py`
+- `src/pathspace_lab/solvers/__init__.py`
+- `tests/test_soft_dp.py`
+- `notebooks/paired/01_dp_softdp_qa_layered_path.py`
+- `notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- `DEVELOPMENT_ROADMAP.md`
+- `docs/execution_log.md`
+
+### Validation Run
+
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest tests\test_soft_dp.py`
+- Result: passed, `7 passed`.
+- Command: `$env:MPLBACKEND='Agg'; & 'C:\Users\ACH\miniconda3\python.exe' notebooks\paired\01_dp_softdp_qa_layered_path.py`
+- Result: passed; printed `beta=0 prob sum: 1.0`, `beta=max prob sum: 1.0`, `beta=0 entropy: 5.493061443340547`, `beta=max success: 0.9193250609975623`, `beta=max expected energy: 5.994850692655994`, `optimal path probability at beta=max: 0.9193250609975614`, `decoy path probability at beta=max: 2.052688360563381e-09`, and `beta=max marginal sum: 5.0`.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m jupytext --sync notebooks/01_dp_softdp_qa_layered_path.ipynb`
+- Result: passed.
+- Command: `& 'C:\Users\ACH\miniconda3\python.exe' -m pytest`
+- Result: passed, `37 passed`.
+- Command: `$env:JUPYTER_ALLOW_INSECURE_WRITES='1'; & 'C:\Users\ACH\miniconda3\python.exe' -m jupyter nbconvert --execute --to notebook notebooks/01_dp_softdp_qa_layered_path.ipynb --output pathspace_lab_notebook_check.ipynb --output-dir .pytest_cache`
+- Result: passed; wrote `.pytest_cache\pathspace_lab_notebook_check.ipynb`.
+
+### Deviations From Spec
+
+- None. The solver uses an internal NumPy log-sum-exp helper instead of importing `scipy.special.logsumexp`; the mathematical computation is the same.
+
+### Environment Notes
+
+- Importing `scipy.special.logsumexp` triggered a local SciPy/Numpy `MemoryError` during test collection. To keep Issue 05 stable and lightweight, the solver now uses a small NumPy-only log-sum-exp helper.
+- The local Windows nbconvert check still requires `JUPYTER_ALLOW_INSECURE_WRITES=1` because Jupyter cannot update some profile ACL permissions.
+
+### Mathematical Sanity Checks
+
+- At beta `0`, path probabilities are uniform and entropy matches `log(N)` for `N = 243`.
+- Every tested Soft-DP frame has path probabilities summing to `1`.
+- Cell marginals sum to one per layer and `L = 5` globally.
+- Edge marginals sum to `L - 1 = 4`.
+- On the planted instance, success probability increases with beta and expected energy decreases with beta.
+- At beta `8`, success probability is approximately `0.9193`; the decoy path probability is approximately `2.05e-09`.
+
+### Open Questions
+
+- None.

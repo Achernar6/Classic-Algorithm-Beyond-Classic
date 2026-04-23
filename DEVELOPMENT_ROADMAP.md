@@ -701,6 +701,14 @@ The AI agent must report:
 - which observables are used by QA,
 - which tests verify normalization and marginals.
 
+## Required tests
+
+- Add focused tests corresponding to the mathematical requirements above, especially normalization, zero-probability stability, multiple-optimum success probability, and cell/edge marginal sums.
+
+## Execution notes
+
+Moved to `docs/execution_log.md#issue-03-common-observables-and-marginal-utilities`.
+
 ---
 
 # Issue 04: Implement Hard DP solver
@@ -769,6 +777,10 @@ The AI agent must report:
 - `test_traceback_path_is_valid`
 - `test_traceback_energy_equals_dp_value`
 - `test_hard_dp_frames_have_value_heat`
+
+## Execution notes
+
+Moved to `docs/execution_log.md#issue-04-hard-dp-solver`.
 
 ---
 
@@ -853,6 +865,10 @@ The AI agent must report:
 - `test_softdp_cell_marginals_sum_to_num_layers`
 - `test_softdp_success_probability_increases_for_planted_instance`
 - `test_softdp_expected_energy_decreases_with_beta_for_planted_instance`
+
+## Execution notes
+
+Moved to `docs/execution_log.md#issue-05-soft-dp-solver`.
 
 ---
 
@@ -1393,7 +1409,7 @@ Ensure the final notebook remains executable.
 scripts/execute_notebook.sh
 ```
 
-- Use either `jupyter nbconvert --execute` or a pytest notebook plugin.
+- Use either `jupyter nbconvert --execute` or a pytest notebook plugin. An equivalent local script or command is acceptable if the active development environment cannot run the shell script directly.
 - Add a README command for notebook execution.
 - Optionally add a CI job later.
 
